@@ -1,17 +1,19 @@
 # Progress checkpoint — Istanbul source and remote render
 
 ## Completed
-- The seven-minute Istanbul production scaffold, narration, storyboards, sources, Remotion/Three.js scene, ECharts timeline, and Blender/Manim scripts are present in `ENGINE_SOURCE`.
-- Local branch `main` is ready; source commit before remote integration: `8977c42`.
-- GitHub API authentication identifies account `touilhasan12-png`. The user supplied `TopBuzz` as the target repository; API confirmed `touilhasan12-png/TopBuzz` is public and defaults to `main`.
-- Remote `main` contains the starter commit `b54bda4` with a single `README.md`; it must be preserved during integration.
-- Remotion Chromium was configured for `swangle`, suitable for CPU-only rendering. `npx tsc --noEmit` passed.
+- The Istanbul production scaffold, English narration, storyboard, sources, Remotion/Three.js scene, ECharts timeline, and Blender/Manim scripts are in the repository.
+- GitHub API authentication identified account `touilhasan12-png`; user-selected target `TopBuzz` is public and defaults to `main`.
+- Source was merged with the repository's starter README and pushed to `main`; merge commit: `d0776a4`.
+- Remotion Chromium is configured for `swangle` CPU rendering. `npx tsc --noEmit` passed.
+- Preview `workflow_dispatch` run `39461069141` completed successfully. It produced a five-second 1920×1080, 24 fps MP4. Representative frames were inspected; the preview artifact is in the Drive render folder.
 
-## Render status
-- The one-frame local smoke test passed WebGL initialization with `swangle`, then stopped at the expected missing `public/istanbul-landmarks.glb`; this asset is produced by the Blender step in the remote workflow. No preview or final MP4 exists yet.
-- GitHub `workflow_dispatch` has not yet been triggered.
+## Final render
+- `workflow_dispatch` run `39461574303` was launched with profile `final` on `main`.
+- Last checked status: `in_progress` at the Remotion render step. Blender/Manim asset generation completed successfully.
+- No full-length MP4 is available yet. Continue monitoring the run, then download, validate, visually review, and upload its artifact to Drive.
 
-## Resume from
-1. Integrate the remote starter commit without discarding its README, then push `main` to `TopBuzz`.
-2. Trigger the preview workflow, review the generated artifact and logs, and repair any failures.
-3. Run the final profile only after preview QA; upload the finished MP4 to Drive.
+## Relevant locations
+- GitHub: `https://github.com/touilhasan12-png/TopBuzz`
+- Preview run: `https://github.com/touilhasan12-png/TopBuzz/actions/runs/39461069141`
+- Final run: `https://github.com/touilhasan12-png/TopBuzz/actions/runs/39461574303`
+- Preview Drive file: `Istanbul_Preview_5s_Run_39461069141.mp4`

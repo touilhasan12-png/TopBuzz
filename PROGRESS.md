@@ -4,18 +4,17 @@
 - Selected Istanbul / Byzantium / Constantinople / modern city as the topic.
 - Wrote the English narration draft, timed storyboard, and source ledger; generated a narration track of approximately 7:00.
 - Created the Remotion composition with a procedural Three.js city, Apache ECharts timeline, chapter cards, and Blender/Manim asset pipeline.
-- Added GitHub Actions `workflow_dispatch` render workflow, with `preview` and `final` profiles.
-- TypeScript type-check passed. Production dependency audit passed. Timeline data validation passed.
-- Prepared local source repository `ENGINE_SOURCE` on branch `main`.
-- Confirmed GitHub access to `touilhasan12-png/TopBuzz`; repository is public and its default branch is `main`.
+- Added GitHub Actions `workflow_dispatch` render workflow with `preview` and `final` profiles; pushed source to `touilhasan12-png/TopBuzz` on `main` (merge commit `d0776a4`).
+- TypeScript type-check passed. Production dependency audit and timeline data validation passed.
+- Preview workflow run `39461069141` completed successfully. It rendered five seconds at 1920×1080, 24 fps; the artifact was downloaded, inspected, and uploaded to Drive.
 
-## Current render diagnostics
-- Switched Remotion's Chromium backend to `swangle` and added the explicit `--gl=swangle` render flag for CPU-only runners.
-- A one-frame local smoke test passed the WebGL initialization step, then stopped because `public/istanbul-landmarks.glb` is not present locally. The render workflow must generate this asset with Blender first; it likewise generates `public/strait-map.mp4` with Manim.
-- No preview MP4 or seven-minute final render has been produced yet.
+## Current status
+- Full render run `39461574303` was launched with profile `final`; GitHub Actions reports it `in_progress` in the Remotion render step.
+- Remotion uses `swangle` so Three.js can render on CPU-only workers. The remote Blender and Manim asset-build step passed on both preview and final runs.
+- No final MP4 has been produced or reviewed yet. The final run's artifact upload is pending until rendering completes.
 
-## Next steps
-1. Merge the repository's existing starter README into the prepared `main` history and push the Istanbul source to `TopBuzz`.
-2. Trigger `workflow_dispatch` with profile `preview`, inspect the artifact and logs, then correct any failures.
-3. Only after preview QA, trigger `final`, retrieve the MP4 artifact, and upload it to the Drive project folder.
+## Remaining
+1. Continue monitoring run `39461574303` until completion; inspect its conclusion, steps, and artifact.
+2. Download and validate the final MP4 (duration, resolution, audio/video streams), review representative frames, and upload it to the Drive project folder.
+3. If the render fails, use the failed step/logs to patch and retry only the necessary stage.
 4. Optional TripoSR/Hunyuan3D asset generation remains a separate GPU-only enhancement and is not part of the CPU baseline workflow.

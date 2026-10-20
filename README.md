@@ -5,9 +5,9 @@ Production source for an approximately seven-minute English-language cinematic 3
 ## Production status
 - Topic: Istanbul, from ancient Byzantium through Constantinople and Ottoman rule to the modern metropolis.
 - English narration, beat sheet, references, timeline data, and GitHub Actions render workflow are included.
-- Target repository: `touilhasan12-png/TopBuzz` (`main`). Remote access has been confirmed; the repository initially contained only its starter README.
-- The source is prepared on local branch `main`. No full-length render or final master has been produced yet.
-- The short local Remotion smoke test confirmed the software WebGL path, then stopped because Blender-generated `public/istanbul-landmarks.glb` is not present locally. The render workflow builds that asset before rendering.
+- Target repository: `touilhasan12-png/TopBuzz`, branch `main`. The repository is public; the project source has been pushed there.
+- Preview workflow run `39461069141` succeeded and produced a five-second 1920×1080, 24 fps test clip. The clip has been inspected and stored in the Drive render folder.
+- Full render workflow run `39461574303` was dispatched with profile `final` and is still in progress. No final master is available yet.
 
 ## Technical direction
 - Blender/Python: hero landmarks, lighting, procedural assets, GLB export.
