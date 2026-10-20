@@ -1,18 +1,19 @@
 # Remote render handoff
 
-The project is in `touilhasan12-png/TopBuzz`, branch `main`. The manual workflow is `.github/workflows/render.yml` with `workflow_dispatch` profiles `preview` and `final`. The repository is public.
+The project is in `touilhasan12-png/TopBuzz`, branch `main`. The repository is public. The manual workflow is `.github/workflows/render.yml` with `workflow_dispatch` profiles `preview` and `final`.
 
-## Run history
-- Preview run `39461069141` succeeded: five seconds at 1920×1080, 24 fps. The MP4 was downloaded, visually checked at representative frames, and uploaded to the Drive render folder.
-- Final run `39461574303` was dispatched on `main` with profile `final`; it remains in progress at the Remotion render step. Its Blender/Manim asset build succeeded.
+## Completed runs
+- Preview run `39461069141` succeeded: five seconds at 1920×1080, 24 fps; artifact inspected and saved to Drive.
+- Full run `39461574303` succeeded. The MP4 is 7:00.05 at 1920×1080, 24 fps, H.264 with AAC stereo audio at 48 kHz. The file is in the Drive render folder.
+- Blender and Manim asset generation passed, and the full MP4 decoded without error.
 
-## Remaining steps
-1. Monitor the final run until it completes.
-2. Download its artifact and verify duration, resolution, audio/video streams, and representative frames.
-3. Upload the approved final MP4 to the Drive project folder.
-4. If the render fails, inspect the run logs, patch the concrete issue, and retry only the necessary run.
+## Visual quality caveat
+Spot-checks are crisp and legible, but the current scene is a simplified low-poly/blockout city with simple landmark shapes. The render is a technical draft and is not yet at the requested professional cinematic bar.
 
-The CPU baseline deliberately does not run TripoSR/Hunyuan3D model weights. Optional asset generation needs a separately provisioned GPU runner. The Remotion renderer uses `swangle` for CPU-only Three.js rendering.
+## Recommended next steps
+1. Improve geographically grounded city/landmark assets, materials, lighting, depth, and camera choreography.
+2. Render and visually approve a short preview.
+3. Only after the preview gate passes, launch a new `final` run; preserve the current draft.
+4. Upload the approved replacement master to Drive.
 
-## Checkpoint rule
-Each scene should render independently when the full scene pipeline is implemented. On failure, retain completed scene artifacts and record the failing scene/frame range in `PROGRESS.md`; do not rerender unchanged scenes.
+The CPU baseline deliberately does not run TripoSR/Hunyuan3D model weights. Optional asset generation needs a separately provisioned GPU runner. Remotion uses `swangle` for CPU-only Three.js rendering.

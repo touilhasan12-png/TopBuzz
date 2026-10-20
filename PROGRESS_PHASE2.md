@@ -1,19 +1,14 @@
-# Progress checkpoint — Istanbul source and remote render
+# Progress checkpoint — Istanbul full render
 
-## Completed
-- The Istanbul production scaffold, English narration, storyboard, sources, Remotion/Three.js scene, ECharts timeline, and Blender/Manim scripts are in the repository.
-- GitHub API authentication identified account `touilhasan12-png`; user-selected target `TopBuzz` is public and defaults to `main`.
-- Source was merged with the repository's starter README and pushed to `main`; merge commit: `d0776a4`.
-- Remotion Chromium is configured for `swangle` CPU rendering. `npx tsc --noEmit` passed.
-- Preview `workflow_dispatch` run `39461069141` completed successfully. It produced a five-second 1920×1080, 24 fps MP4. Representative frames were inspected; the preview artifact is in the Drive render folder.
+## Render completed
+- Source repository: `https://github.com/touilhasan12-png/TopBuzz`, branch `main` (public).
+- Preview workflow run `39461069141` succeeded; its five-second MP4 is in Drive.
+- Full workflow run `39461574303` completed successfully. Output file: `Istanbul_Full_7min_Final_Run_39461574303.mp4`.
+- Verified media: 00:07:00.05, 1920×1080, 24 fps, H.264 video, AAC stereo audio at 48 kHz, 109,720,341 bytes. Whole-file decode completed without error.
+- Drive file: `https://drive.google.com/file/d/1OCVtFPJfAfVNUl6EnaNj6xEXe80oFrrI/view?usp=drivesdk`.
 
-## Final render
-- `workflow_dispatch` run `39461574303` was launched with profile `final` on `main`.
-- Last checked status: `in_progress` at the Remotion render step. Blender/Manim asset generation completed successfully.
-- No full-length MP4 is available yet. Continue monitoring the run, then download, validate, visually review, and upload its artifact to Drive.
+## Visual gate
+Representative frames were reviewed at 0:08, 1:00, 3:00, 5:00, and 6:59. They are sharp and text is legible, but the city/landmarks are generic low-poly blockout geometry. The output is a technical full-length draft, not yet an approved professional master.
 
-## Relevant locations
-- GitHub: `https://github.com/touilhasan12-png/TopBuzz`
-- Preview run: `https://github.com/touilhasan12-png/TopBuzz/actions/runs/39461069141`
-- Final run: `https://github.com/touilhasan12-png/TopBuzz/actions/runs/39461574303`
-- Preview Drive file: `Istanbul_Preview_5s_Run_39461069141.mp4`
+## Next phase
+Improve the city and landmark asset quality, materials, lighting, and camera choreography; render a short replacement preview; pass the visual gate; then render and validate a new full-length master. Preserve the current render as a draft rather than overwriting it.

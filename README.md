@@ -4,10 +4,10 @@ Production source for an approximately seven-minute English-language cinematic 3
 
 ## Production status
 - Topic: Istanbul, from ancient Byzantium through Constantinople and Ottoman rule to the modern metropolis.
-- English narration, beat sheet, references, timeline data, and GitHub Actions render workflow are included.
-- Target repository: `touilhasan12-png/TopBuzz`, branch `main`. The repository is public; the project source has been pushed there.
-- Preview workflow run `39461069141` succeeded and produced a five-second 1920×1080, 24 fps test clip. The clip has been inspected and stored in the Drive render folder.
-- Full render workflow run `39461574303` was dispatched with profile `final` and is still in progress. No final master is available yet.
+- English narration, beat sheet, references, timeline data, Remotion/Three.js scene, ECharts timeline, and Blender/Manim asset pipeline are included.
+- Target repository: `touilhasan12-png/TopBuzz`, branch `main`. The repository is public.
+- GitHub Actions preview run `39461069141` succeeded. Full render run `39461574303` also succeeded and produced a 7:00.05 MP4 at 1920×1080, 24 fps with H.264 video and AAC stereo audio. The full MP4 is in the Drive render folder.
+- Visual spot-checks show a crisp but highly simplified low-poly/blockout city. Treat this render as a technical draft; it does not yet meet the requested polished cinematic quality bar.
 
 ## Technical direction
 - Blender/Python: hero landmarks, lighting, procedural assets, GLB export.

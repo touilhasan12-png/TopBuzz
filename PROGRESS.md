@@ -4,17 +4,17 @@
 - Selected Istanbul / Byzantium / Constantinople / modern city as the topic.
 - Wrote the English narration draft, timed storyboard, and source ledger; generated a narration track of approximately 7:00.
 - Created the Remotion composition with a procedural Three.js city, Apache ECharts timeline, chapter cards, and Blender/Manim asset pipeline.
-- Added GitHub Actions `workflow_dispatch` render workflow with `preview` and `final` profiles; pushed source to `touilhasan12-png/TopBuzz` on `main` (merge commit `d0776a4`).
+- Pushed the source to `touilhasan12-png/TopBuzz` on `main`; current source commit before this checkpoint: `7b87ecf`.
 - TypeScript type-check passed. Production dependency audit and timeline data validation passed.
-- Preview workflow run `39461069141` completed successfully. It rendered five seconds at 1920×1080, 24 fps; the artifact was downloaded, inspected, and uploaded to Drive.
+- Preview run `39461069141` succeeded and produced a five-second 1920×1080, 24 fps MP4.
+- Full render run `39461574303` succeeded. The output is 7:00.05, 1920×1080 at 24 fps, H.264 video with AAC stereo audio at 48 kHz; file size 109,720,341 bytes. It is stored in the Drive render folder.
 
-## Current status
-- Full render run `39461574303` was launched with profile `final`; GitHub Actions reports it `in_progress` in the Remotion render step.
-- Remotion uses `swangle` so Three.js can render on CPU-only workers. The remote Blender and Manim asset-build step passed on both preview and final runs.
-- No final MP4 has been produced or reviewed yet. The final run's artifact upload is pending until rendering completes.
+## Quality review
+- Whole-file decoding completed without error. Representative frames at 0:08, 1:00, 3:00, 5:00, and 6:59 were spot-checked; the image is sharp and the title/timeline are legible.
+- The current city and landmarks are visibly simple low-poly/blockout geometry. This is a successful technical render, but it does not yet meet the requested high-end cinematic/professional bar. Do not label it the accepted final master without visual refinement and another render.
 
-## Remaining
-1. Continue monitoring run `39461574303` until completion; inspect its conclusion, steps, and artifact.
-2. Download and validate the final MP4 (duration, resolution, audio/video streams), review representative frames, and upload it to the Drive project folder.
-3. If the render fails, use the failed step/logs to patch and retry only the necessary stage.
-4. Optional TripoSR/Hunyuan3D asset generation remains a separate GPU-only enhancement and is not part of the CPU baseline workflow.
+## Recommended next phase
+1. Replace generic urban blocks and simple landmark shapes with detailed, geographically grounded city/landmark assets; refine materials, lighting, atmospheric depth, and camera choreography.
+2. Render a new short preview, review it, then rerender the full seven minutes only after the visual gate passes.
+3. Keep the existing full render as a technical draft; do not overwrite it.
+4. Optional TripoSR/Hunyuan3D asset generation requires a separate GPU runner and is not part of the CPU baseline workflow.
