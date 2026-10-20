@@ -1,0 +1,43 @@
+name: Render Istanbul film
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Render profile
+        required: true
+        type: choice
+        options: [preview, final]
+        default: preview
+permissions:
+  contents: read
+jobs:
+  render:
+    # CPU baseline only. Optional TripoSR/Hunyuan3D asset generation must be a
+    # separate self-hosted GPU job. Never put PATs in the workflow or repository.
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install Blender and FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y blender ffmpeg pkg-config libcairo2-dev libpango1.0-dev
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Install Python render tools
+        run: python -m pip install -r requirements-render.txt
+      - name: Build Blender and Manim assets
+        env:
+          REQUIRE_RENDER_ASSETS: "1"
+        run: npm run build:assets
+      - name: Render short preview or full film
+        run: |
+          if [ "${{ inputs.profile }}" = "preview" ]; then npm run render:preview; else npm run render:film; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: istanbul-${{ inputs.profile }}
+          path: out/*.mp4
+          if-no-files-found: error
+          retention-days: 14

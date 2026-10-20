@@ -1,0 +1,15 @@
+[
+  {"year": -657, "label": "Byzantium", "chapter": "The Strait", "confidence": "traditional dating; phrase as approximate"},
+  {"year": 330, "label": "Constantinople / New Rome", "chapter": "Imperial Capital", "confidence": "high"},
+  {"year": 447, "label": "Theodosian land-wall works", "chapter": "Walls and Water", "confidence": "UNESCO property documentation"},
+  {"year": 537, "label": "Hagia Sophia completed", "chapter": "A Monumental Skyline", "confidence": "high; 532–537 construction"},
+  {"year": 1204, "label": "Fourth Crusade sacks the city", "chapter": "A City Under Pressure", "confidence": "high"},
+  {"year": 1261, "label": "Byzantine rule restored", "chapter": "A City Under Pressure", "confidence": "high"},
+  {"year": 1453, "label": "Ottoman conquest", "chapter": "A New Imperial Era", "confidence": "high"},
+  {"year": 1550, "label": "Süleymaniye complex begins", "chapter": "Ottoman Skyline", "confidence": "confirm exact construction range before narration"},
+  {"year": 1923, "label": "Republic founded; capital moves to Ankara", "chapter": "A Modern Metropolis", "confidence": "high"},
+  {"year": 1930, "label": "Istanbul becomes official international name", "chapter": "A Modern Metropolis", "confidence": "verify wording; avoid implying name was unused before"},
+  {"year": 1973, "label": "First Bosporus Bridge opens", "chapter": "Connecting the Shores", "confidence": "high"},
+  {"year": 1988, "label": "Fatih Sultan Mehmet Bridge opens", "chapter": "Connecting the Shores", "confidence": "high"},
+  {"year": 2013, "label": "Marmaray rail tunnel opens", "chapter": "Connecting the Shores", "confidence": "verify launch scope and date before narration"}
+]

@@ -1,0 +1,3 @@
+# Optional geodata imports for modern city layers; install only when this stage is needed.
+Pillow>=10.0
+osmnx>=2.0

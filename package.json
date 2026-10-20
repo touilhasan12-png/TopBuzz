@@ -1,0 +1,27 @@
+{
+  "name": "3dvid-istanbul",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.tsx",
+    "render:preview": "remotion render src/index.tsx IstanbulFilm out/istanbul-preview.mp4 --frames=0-119 --codec=h264",
+    "render:film": "remotion render src/index.tsx IstanbulFilm out/istanbul-film.mp4 --codec=h264 --concurrency=2",
+    "build:assets": "python scripts/build_assets.py"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.4.0",
+    "@remotion/cli": "4.0.528",
+    "@remotion/three": "4.0.528",
+    "echarts": "^6.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "remotion": "4.0.528",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.9.0"
+  }
+}
