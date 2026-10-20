@@ -1,15 +1,16 @@
 """Validate data and create deterministic Blender/Manim scene assets."""
 from pathlib import Path
-import json, shutil, subprocess, os
+import json, shutil, subprocess, os, sys
 ROOT=Path(__file__).resolve().parents[1]
 with (ROOT/'data'/'timeline.json').open(encoding='utf-8') as f: timeline=json.load(f)
 assert timeline and all('year' in item and 'label' in item for item in timeline)
 (ROOT/'public').mkdir(exist_ok=True)
+subprocess.run([sys.executable,str(ROOT/'scripts'/'create_historic_roofscapes.py')],check=True)
 required=os.environ.get('REQUIRE_RENDER_ASSETS')=='1'
 blender=shutil.which('blender')
 manim=shutil.which('manim')
 if blender:
-    subprocess.run([blender,'-b','-P',str(ROOT/'blender'/'generate_landmarks.py'),'--',str(ROOT/'public'/'istanbul-landmarks.glb')],check=True)
+    subprocess.run([blender,'-b','-P',str(ROOT/'blender'/'generate_landmarks.py'),'--',str(ROOT/'public'/'istanbul-landmarks.glb'),str(ROOT/'data'/'istanbul-core-osm.geojson')],check=True)
 elif required: raise SystemExit('Blender is required to build the landmark GLB on this render runner.')
 else: print('Blender not installed; optional landmark GLB skipped.')
 if manim:

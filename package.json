@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "studio": "remotion studio src/index.tsx",
-    "render:preview": "remotion render src/index.tsx IstanbulFilm out/istanbul-preview.mp4 --frames=0-119 --codec=h264 --gl=swangle",
+    "render:preview": "remotion render src/index.tsx IstanbulFilm out/istanbul-preview.mp4 --frames=4368-4487 --codec=h264 --gl=swangle",
     "render:film": "remotion render src/index.tsx IstanbulFilm out/istanbul-film.mp4 --codec=h264 --concurrency=2 --gl=swangle",
     "build:assets": "python scripts/build_assets.py"
   },

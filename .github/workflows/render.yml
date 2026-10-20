@@ -26,6 +26,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y blender ffmpeg pkg-config libcairo2-dev libpango1.0-dev
       - name: Install Node dependencies
         run: npm ci
+      - name: Type-check source
+        run: npx tsc --noEmit
       - name: Install Python render tools
         run: python -m pip install -r requirements-render.txt
       - name: Build Blender and Manim assets
@@ -35,6 +37,12 @@ jobs:
       - name: Render short preview or full film
         run: |
           if [ "${{ inputs.profile }}" = "preview" ]; then npm run render:preview; else npm run render:film; fi
+      - name: Validate rendered video
+        run: |
+          FILE="$(find out -maxdepth 1 -type f -name '*.mp4' -print -quit)"
+          test -n "$FILE"
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,r_frame_rate -show_entries format=duration -of default=noprint_wrappers=1 "$FILE"
+          ffmpeg -v error -i "$FILE" -f null -
       - uses: actions/upload-artifact@v4
         with:
           name: istanbul-${{ inputs.profile }}
