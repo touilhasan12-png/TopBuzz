@@ -10,7 +10,10 @@ required=os.environ.get('REQUIRE_RENDER_ASSETS')=='1'
 blender=shutil.which('blender')
 manim=shutil.which('manim')
 if blender:
-    subprocess.run([blender,'-b','-P',str(ROOT/'blender'/'generate_landmarks.py'),'--',str(ROOT/'public'/'istanbul-landmarks.glb'),str(ROOT/'data'/'istanbul-core-osm.geojson')],check=True)
+    glb=ROOT/'public'/'istanbul-landmarks.glb'
+    subprocess.run([blender,'-b','-P',str(ROOT/'blender'/'generate_landmarks.py'),'--',str(glb),str(ROOT/'data'/'istanbul-core-osm.geojson')],check=True)
+    if not glb.is_file() or glb.stat().st_size<1_000_000:
+        raise SystemExit(f'Blender exited without a valid landmark GLB: {glb}')
 elif required: raise SystemExit('Blender is required to build the landmark GLB on this render runner.')
 else: print('Blender not installed; optional landmark GLB skipped.')
 if manim:

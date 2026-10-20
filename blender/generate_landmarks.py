@@ -590,7 +590,10 @@ build_historic_roofscape(terrain_obj,'byzantine-roofscape.png','Byzantine roofsc
 build_historic_roofscape(terrain_obj,'ottoman-roofscape.png','Ottoman roofscape | illustrative texture',L_OTT,.024)
 build_satellite_surface(terrain_obj); create_landmarks(); build_bridges()
 # A subdued ambient light and orthographic-like camera setup are embedded for model previews.
-scene=bpy.context.scene; scene.render.engine='BLENDER_EEVEE_NEXT'; scene.eevee.taa_render_samples=16
+scene=bpy.context.scene
+engine_ids={item.identifier for item in scene.render.bl_rna.properties['engine'].enum_items}
+scene.render.engine='BLENDER_EEVEE_NEXT' if 'BLENDER_EEVEE_NEXT' in engine_ids else 'BLENDER_EEVEE'
+scene.eevee.taa_render_samples=16
 scene.world.color=(.12,.18,.22)
 # Export the entire layered scene, retaining layer empties for Remotion visibility animation.
 bpy.ops.object.select_all(action='SELECT')
