@@ -10,13 +10,20 @@
 - Ran timeline asset validation, TypeScript type-check, and a production dependency audit successfully. No full-length local render was run.
 - Created the Drive project folder and saved the project package and preproduction docs there.
 
+## GitHub / render status (2026-10-20)
+- GitHub API access via `curl` works for `/user`; account login resolved as `touilhasan12-png`.
+- `GET /repos/touilhasan12-png/3dvid` returned 404. `POST /user/repos` to create the private repository returned 403: `Resource not accessible by personal access token`.
+- No remote repository was created, no source was pushed, and no `workflow_dispatch` was triggered.
+- A local Git-ready source mirror is staged at `/home/user/ENGINE_SOURCE`, branch `main`, with origin set to `https://github.com/touilhasan12-png/3dvid.git`.
+- A local preview attempt exposed a headless WebGL issue; the renderer was changed to `swangle` for CPU-only rendering. The subsequent one-frame check progressed past WebGL but stopped because the Blender-generated `public/istanbul-landmarks.glb` is absent locally. The render workflow builds this asset first; Blender/Manim are not installed in the local environment.
+
 ## Pending before a final master
-- The PAT exposed in chat must be revoked by the account owner; it is not in the project and must not be used.
-- GitHub connector is unsupported in this session, so no push/trigger/poll of `3dvid` has occurred. A repository maintainer must add and launch the workflow, or provide an accessible artifact path.
+- Create the private GitHub repository or grant the current credential repository creation/access permissions; then push `main` and launch the preview using `workflow_dispatch`.
+- Generate and review the preview, then run the final render and upload the MP4 to Drive.
 - Final visual review, soundtrack licensing/mix, and complete render/QA remain.
 - Optional TripoSR/Hunyuan3D asset generation needs a suitable GPU runner and is not included in the CPU baseline action.
 
 ## Resume from
-1. Revoke exposed credential.
-2. Add this project bundle to the intended repository and run the preview workflow from a maintainer account.
+1. Make `touilhasan12-png/3dvid` available as a private repository with contents/actions write access.
+2. Push the prepared `main` branch and trigger the approved preview workflow.
 3. Review the preview, then run final render and upload the final MP4 to Drive.

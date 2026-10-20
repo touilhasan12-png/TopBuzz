@@ -1,4 +1,4 @@
 import {Config} from '@remotion/cli/config';
 
-Config.setChromiumOpenGlRenderer('angle');
+Config.setChromiumOpenGlRenderer('swangle');
 Config.setConcurrency(2);
