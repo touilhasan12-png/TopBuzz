@@ -2,6 +2,10 @@ name: 05-assemble
 on:
   workflow_dispatch:
     inputs:
+      render_run_id:
+        description: "Actions run ID of 04-full-render to pull parts from"
+        required: true
+        default: "39672533243"
       music:
         description: "Mix music bed under voice"
         required: true
@@ -17,12 +21,17 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v4
-      - name: Download all parts
+      - name: Download all parts (cross-run)
         uses: actions/download-artifact@v4
         with:
           pattern: part-*
           path: parts
           merge-multiple: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.inputs.render_run_id }}
+      - name: Verify parts
+        run: |
+          ls -l parts/ && ls -l parts/part-1/ && echo PART_COUNT=$(ls -d parts/part-* | wc -l)
       - name: Install ffmpeg
         run: |
           curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o /tmp/ff.tar.xz
