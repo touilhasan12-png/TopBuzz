@@ -1,0 +1,56 @@
+name: 03-render-probe
+on:
+  workflow_dispatch:
+    inputs:
+      frames:
+        description: "Frame range, e.g. 0-600 (30fps)"
+        required: true
+        default: "0-600"
+      release:
+        description: "Upload result to pipeline-latest release"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: remotion/package-lock.json
+      - name: Install deps
+        working-directory: remotion
+        run: npm ci --no-audit --no-fund
+      - name: Stage assets (procedural fallbacks for now)
+        working-directory: remotion
+        run: python3 tools/stage_assets.py
+      - name: Ensure headless browser
+        working-directory: remotion
+        run: npx remotion browser ensure
+      - name: Render probe
+        working-directory: remotion
+        run: |
+          npx remotion render src/index.ts Hormuz out/probe.mp4 \
+            --frames=${{ github.event.inputs.frames }} \
+            --codec=h264 --pixel-format=yuv420p --jpeg-quality=85 \
+            --concurrency=3 --log=info
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ github.event.inputs.frames }}
+          path: remotion/out/probe.mp4
+          retention-days: 14
+      - name: Upload to release
+        if: github.event.inputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SAFE=$(echo "${{ github.event.inputs.frames }}" | tr -c '0-9-' '_')
+          gh release upload pipeline-latest remotion/out/probe.mp4 \
+            --clobber --name "probe_${SAFE}.mp4" || true
