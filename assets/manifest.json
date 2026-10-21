@@ -1,0 +1,52 @@
+{
+  "footage_commons_queries": [
+    "Strait of Hormuz video",
+    "US Navy Strait of Hormuz",
+    "Operation Earnest Will",
+    "USS escort tanker convoy",
+    "aircraft carrier Persian Gulf",
+    "USS carrier Arabian Sea launch",
+    "fast attack craft naval",
+    "mine countermeasures ship",
+    "oil tanker VLCC",
+    "submarine periscope",
+    "CENTCOM naval",
+    "USS destroyer Arabian Gulf"
+  ],
+  "footage_archive_queries": [
+    "strait of hormuz",
+    "operation earnest will",
+    "tanker war persian gulf",
+    "navy convoy escort",
+    "persian gulf naval"
+  ],
+  "natural_earth": {
+    "coastline": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_coastline.geojson",
+    "land": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_land.geojson",
+    "license": "public domain"
+  },
+  "sentinel2": {
+    "stac": "https://earth-search.aws.element84.com/v1/search",
+    "collection": "sentinel-2-l2a",
+    "bbox": [55.2, 25.4, 57.6, 26.9],
+    "datetime": "2026-07-01T00:00:00Z/2026-10-18T00:00:00Z",
+    "max_cloud": 25,
+    "attribution": "Contains modified Copernicus Sentinel data 2026"
+  },
+  "brent_csv": "https://datahub.io/core/oil-prices/r/brent-daily.csv",
+  "fonts": {
+    "Inter": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+    "Archivo": "https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/Archivo%5Bwdth%2Cwght%5D.ttf",
+    "IBMPlexMono": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-Bold.ttf",
+    "IBMPlexMonoRegular": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-Regular.ttf"
+  },
+  "music_kevin_macleod": {
+    "base": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/",
+    "tracks": ["The%20Descent.mp3", "Deliberate%20Thought.mp3", "Impending%20Boom.mp3"],
+    "credit": "Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0"
+  },
+  "sfx": {
+    "note": "Primary: synthesized locally by synth_sfx.py (guaranteed). External CC0 zips attempted best-effort.",
+    "external": []
+  }
+}
