@@ -1,28 +1,39 @@
-# TopBuzz — Golden Gate loop test shot
+# Richard Bong — Ace of Aces
 
-This is a polished 8-second 2D cutout-animation proof of concept based on the visual analysis of the `videotest` reference. It uses original illustrated assets, a rotating aircraft sprite, a drawn-on contrail, a gentle camera push, and subtitle-style captions. It does **not** reuse frames or artwork from the reference video.
+An approximately 84-second English-language portrait animation about Richard Bong, created from original 2D vector drawings in Godot. Characters, facial features, limbs, aircraft, scenery, smoke, props, flight paths, and transitions are drawn as separate shapes and animated in code. The long-form project uses no full-frame generated-image plates or camera-pan substitute animation.
 
-## Output target
+## Video target
 
-- Portrait 9:16 composition, 720×1280
+- Portrait, 720 × 1280 (9:16)
 - 30 frames per second
-- 8-second silent test shot
-- Godot 4.4.1, GL Compatibility renderer
+- 84 seconds (the four narration clips total approximately 83.8 seconds)
+- English narration and English on-screen text
+- H.264 video with AAC audio, `yuv420p`
 
-## Run locally
+## Story beats
 
-Open this folder in Godot 4.4.1 or later and run the main scene. To render an offline AVI:
+Golden Gate opening; Hamilton Field training; a low neighborhood flyby; the commander’s office; Pacific deployment; aerial combat and the confirmed-victory tally; Medal of Honor; homecoming; the P-80 test-flight sequence; and a closing memorial card.
 
-```sh
-godot --path ENGINE_SOURCE --write-movie output/golden-gate.avi --fixed-fps 30 --resolution 720x1280 --quit-after 240
-```
+## Render on GitHub
 
-The GitHub Actions workflow validates the project, renders the AVI, converts it to H.264 MP4 with FFmpeg, checks the output dimensions and frame rate, and uploads the MP4 as a downloadable workflow artifact.
+The `Render Richard Bong epic short` workflow is manually dispatched so a push does not start a render automatically:
 
-## Source assets
+1. Open the repository’s **Actions** tab.
+2. Select **Render Richard Bong epic short**.
+3. Choose **Run workflow** on `main`.
+4. Download the `richard-bong-ace-of-aces-84s` artifact when the run completes. The artifact is retained for seven days.
 
-- `art/golden_gate_background.png` — original illustrated portrait background
-- `art/fighter_cutout.png` — isolated aircraft/pilot sprite
-- `main.gd` — camera motion, aircraft orbit, contrail, and captions
-- `main.tscn` — scene composition
+The workflow validates the Godot project, renders 2,520 frames with Godot 4.4.1, joins the four English narration clips, muxes the final MP4, and checks the stream dimensions, frame rate, codec, and duration.
+
+## Project files
+
+- `main.gd` — hand-drawn vector scenes, character rigs, aircraft, motion, captions, and transitions
+- `main.tscn` — scene entry point
+- `audio/narration_01.mp3` … `audio/narration_04.mp3` — English narration segments
+- `project.godot` — 720 × 1280 portrait project settings
 - `TEST_PLAN.md` — acceptance checks
+
+## Historical references
+
+- [National WWII Museum: Richard Bong and the Medal of Honor](https://www.nationalww2museum.org/war/articles/richard-bong-medal-of-honor)
+- [National Museum of the U.S. Air Force: America’s Top Two Aces](https://www.nationalmuseum.af.mil/Visit/Museum-Exhibits/Fact-Sheets/Display/Article/196781/americas-top-two-aces/)
