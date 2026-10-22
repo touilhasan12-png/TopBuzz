@@ -1,0 +1,66 @@
+name: Render Godot test shot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  render:
+    name: Render 8-second portrait sample
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg unzip xvfb libgl1-mesa-dri
+
+      - name: Download Godot 4.4.1
+        run: |
+          curl --fail --location --silent --show-error \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.4.1-stable_linux.x86_64
+          /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --version
+
+      - name: Validate project scripts and scene
+        run: |
+          /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path ENGINE_SOURCE --quit
+
+      - name: Render AVI
+        run: |
+          mkdir -p output
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x1920x24" \
+            env LIBGL_ALWAYS_SOFTWARE=1 /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 \
+            --path ENGINE_SOURCE \
+            --write-movie "$GITHUB_WORKSPACE/output/topbuzz-golden-gate.avi" \
+            --fixed-fps 30 \
+            --resolution 720x1280 \
+            --quit-after 240
+          test -s output/topbuzz-golden-gate.avi
+
+      - name: Convert to MP4
+        run: |
+          ffmpeg -hide_banner -loglevel error -y \
+            -i output/topbuzz-golden-gate.avi \
+            -an -c:v libx264 -preset medium -crf 19 -pix_fmt yuv420p \
+            -movflags +faststart output/topbuzz-golden-gate.mp4
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=width,height,r_frame_rate -of default=nw=1 \
+            output/topbuzz-golden-gate.mp4
+          test -s output/topbuzz-golden-gate.mp4
+
+      - name: Upload rendered MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: topbuzz-golden-gate-test-shot
+          path: output/topbuzz-golden-gate.mp4
+          if-no-files-found: error
+          retention-days: 7
