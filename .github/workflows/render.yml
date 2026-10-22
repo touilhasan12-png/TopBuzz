@@ -68,16 +68,16 @@ jobs:
             -map 0:v:0 -map "[a]" \
             -t 84 -c:v libx264 -preset medium -crf 19 -pix_fmt yuv420p \
             -c:a aac -b:a 160k -movflags +faststart \
-            output/richard-bong-ace-of-aces.mp4
+            output/richard-bong-layered-illustrated.mp4
 
       - name: Verify video and audio streams
         run: |
-          test -s output/richard-bong-ace-of-aces.mp4
-          width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 output/richard-bong-ace-of-aces.mp4)
-          height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 output/richard-bong-ace-of-aces.mp4)
-          fps=$(ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 output/richard-bong-ace-of-aces.mp4)
-          audio_codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/richard-bong-ace-of-aces.mp4)
-          duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 output/richard-bong-ace-of-aces.mp4)
+          test -s output/richard-bong-layered-illustrated.mp4
+          width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 output/richard-bong-layered-illustrated.mp4)
+          height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 output/richard-bong-layered-illustrated.mp4)
+          fps=$(ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 output/richard-bong-layered-illustrated.mp4)
+          audio_codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/richard-bong-layered-illustrated.mp4)
+          duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 output/richard-bong-layered-illustrated.mp4)
           echo "Video: ${width}x${height} at ${fps}; audio: ${audio_codec}; duration: ${duration}s"
           test "$width" = "720"
           test "$height" = "1280"
@@ -88,7 +88,7 @@ jobs:
       - name: Upload final MP4
         uses: actions/upload-artifact@v4
         with:
-          name: richard-bong-ace-of-aces-84s
-          path: output/richard-bong-ace-of-aces.mp4
+          name: richard-bong-layered-illustrated-84s
+          path: output/richard-bong-layered-illustrated.mp4
           if-no-files-found: error
           retention-days: 7
