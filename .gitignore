@@ -1,8 +1,0 @@
-node_modules/
-public/
-out/
-models/
-data/natural-earth.json
-__pycache__/
-*.log
-.env*
