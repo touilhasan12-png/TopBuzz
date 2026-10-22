@@ -6,7 +6,7 @@ This is newly built source, not a supplied kit. The user approved public use of 
 A roughly 35–45-second, 1920×1080, 16:9, native 30fps technical preview. Duration follows the spoken excerpt and is never forced by dropping words. The first 85 words of the provided Hormuz narration are preserved; the original full-script SHA-256 is recorded in `data/pilot.json`. This is not production of the complete video.
 
 - Remotion/React: frame-deterministic composition and delivery.
-- Three.js / R3F / Remotion ThreeCanvas: original illustrative merchant-vessel geometry. No independent animation clock.
+- Three.js / R3F / Remotion ThreeCanvas: AI-generated, clearly labeled merchant-vessel illustration with frame-driven punch-ins. No archival footage is implied.
 - Natural Earth 1:10 million: public-domain geographical context, not navigational accuracy. The dashed corridor is explicitly illustrative, not AIS.
 - ECharts: SVG server-side rendering with animation disabled. Approximately 400 is shown as an attributed seven-day aggregate, never a daily series or a comparison with a made-up zero.
 - Kokoro ONNX / `am_michael`: provisional US-English masculine speech on the remote CPU. This is not final voice approval. Maximum ten sentence clips; no provider fallback, limit workaround, or silent truncation.
