@@ -1,11 +1,17 @@
 extends Node2D
 
-# Five-second cut-out proof: clean plate, independent plane, walking and stopped pilot poses,
-# a drifting cloud layer, a foot-anchored subject path, and a damped camera target.
+# Five-second cut-out proof: the pilot is a 12-image walk cycle played at 12 fps,
+# not one still image sliding across the plate. The feet define the path anchor;
+# the camera follows that target smoothly, and the pose changes to a stop at 3s.
 const VW: float = 720.0
 const VH: float = 1280.0
 const FPS: float = 30.0
+const WALK_FPS: float = 12.0
 const DURATION: float = 5.0
+const WALK_CONTENT_WIDTH: float = 347.0
+const WALK_CONTENT_HEIGHT: float = 715.0
+const WALK_CANVAS_WIDTH: float = 411.0
+const STAND_CONTENT_HEIGHT: float = 692.0
 const PAPER := Color(0.96, 0.93, 0.84, 0.92)
 const INK := Color(0.14, 0.16, 0.17, 1.0)
 const RUST := Color(0.50, 0.20, 0.14, 1.0)
@@ -13,7 +19,7 @@ const RUST := Color(0.50, 0.20, 0.14, 1.0)
 var frame_index: int = 0
 var plate: Texture2D
 var plane: Texture2D
-var walk_pose: Texture2D
+var walk_frames: Array[Texture2D] = []
 var stand_pose: Texture2D
 var clouds: Texture2D
 var sans: Font
@@ -22,7 +28,9 @@ var serif: Font
 func _ready() -> void:
 	plate = load("res://assets/hamilton_empty_plate.png") as Texture2D
 	plane = load("res://assets/p38_parked.png") as Texture2D
-	walk_pose = load("res://assets/bong_walking.png") as Texture2D
+	for i in range(12):
+		var frame_path: String = "res://assets/walk_cycle/pilot_walk_%02d.png" % i
+		walk_frames.append(load(frame_path) as Texture2D)
 	stand_pose = load("res://assets/bong_standing.png") as Texture2D
 	clouds = load("res://assets/clouds.png") as Texture2D
 	sans = load("res://assets/fonts/DejaVuSans.ttf") as Font
@@ -33,6 +41,8 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if walk_frames.is_empty() or plate == null or plane == null:
+		return
 	var t: float = minf(float(frame_index) / FPS, DURATION)
 	var u: float = clampf(t / DURATION, 0.0, 1.0)
 	var walk_progress: float = _smooth(clampf(u / 0.60, 0.0, 1.0))
@@ -43,26 +53,30 @@ func _draw() -> void:
 	var camera := Vector2((follow_target.x - home.x) * 0.18, (follow_target.y - home.y) * 0.10)
 
 	_draw_plate(camera, 1.035 + 0.012 * u)
-	_draw_cloud_layer(t, u, camera)
+	_draw_cloud_layer(u, camera)
 
 	# The parked P-38 is its own transparent prop, anchored at its landing gear.
 	var plane_center := Vector2(510.0, 914.0) - camera * 0.72
 	_ellipse(Vector2(512.0, 982.0) - camera * 0.72, 178.0, 12.0, Color(0.12, 0.11, 0.09, 0.16))
 	_sprite(plane, plane_center, 398.0, -0.012, Color.WHITE)
 
-	# The pilot's path is defined by his feet; the camera follows the upper-body target smoothly.
+	# Twelve distinct transparent drawings cycle quickly; only this sprite is posed, not the background.
+	var walk_frame_index: int = int(floor(t * WALK_FPS)) % walk_frames.size()
+	var walk_pose: Texture2D = walk_frames[walk_frame_index]
 	var stride: float = sin(TAU * t * 1.25)
+	var pose_width: float = 146.0
+	var walk_scale: float = pose_width / WALK_CONTENT_WIDTH
+	var walk_canvas_width: float = float(walk_pose.get_width()) * walk_scale
+	var walk_visible_height: float = WALK_CONTENT_HEIGHT * walk_scale
 	var bob: float = absf(stride) * 2.4 * (1.0 - _smooth(clampf((t - 3.0) / 0.35, 0.0, 1.0)))
 	var walk_amount: float = 1.0 - _smooth(clampf((t - 3.05) / 0.42, 0.0, 1.0))
-	var pose_width: float = 146.0
-	var walk_h: float = pose_width * float(walk_pose.get_height()) / float(walk_pose.get_width())
-	var stand_width: float = walk_h * float(stand_pose.get_width()) / float(stand_pose.get_height())
-	var stand_h: float = stand_width * float(stand_pose.get_height()) / float(stand_pose.get_width())
-	var walk_center := Vector2(pilot_x, foot_y - walk_h * 0.5 + bob) - camera
-	var stand_center := Vector2(pilot_x + 2.0, foot_y - stand_h * 0.5) - camera
+	var walk_center := Vector2(pilot_x, foot_y - walk_visible_height * 0.5 + bob) - camera
+	var stand_scale: float = walk_visible_height / STAND_CONTENT_HEIGHT
+	var stand_canvas_width: float = float(stand_pose.get_width()) * stand_scale
+	var stand_center := Vector2(pilot_x + 2.0, foot_y - walk_visible_height * 0.5) - camera
 	_ellipse(Vector2(pilot_x, foot_y) - camera, 54.0, 8.0, Color(0.12, 0.11, 0.09, 0.17))
-	_sprite(walk_pose, walk_center, pose_width, 0.012 * stride * walk_amount, Color(1.0, 1.0, 1.0, walk_amount))
-	_sprite(stand_pose, stand_center, stand_width, 0.0, Color(1.0, 1.0, 1.0, 1.0 - walk_amount))
+	_sprite(walk_pose, walk_center, walk_canvas_width, 0.012 * stride * walk_amount, Color(1.0, 1.0, 1.0, walk_amount))
+	_sprite(stand_pose, stand_center, stand_canvas_width, 0.0, Color(1.0, 1.0, 1.0, 1.0 - walk_amount))
 
 	_draw_editorial_text(t)
 
@@ -71,7 +85,7 @@ func _draw_plate(camera: Vector2, zoom: float) -> void:
 	var top_left := (Vector2(VW, VH) - size) * 0.5 - camera * 0.16
 	draw_texture_rect(plate, Rect2(top_left, size), false)
 
-func _draw_cloud_layer(t: float, u: float, camera: Vector2) -> void:
+func _draw_cloud_layer(u: float, camera: Vector2) -> void:
 	var width: float = 870.0
 	var scale: float = width / float(clouds.get_width())
 	var pos := Vector2(445.0 - 44.0 * u, 280.0) - camera * 0.34
