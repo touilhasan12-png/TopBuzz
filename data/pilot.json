@@ -1,0 +1,28 @@
+{
+  "title": "One narrow waterway. Two official statements.",
+  "excerpt": "On Saturday, October 17th, Iran's Revolutionary Guards Navy announced\nthat the Strait of Hormuz is closed, and that passage is prohibited.\nThat's according to Iran's state news agency, IRNA.\n\nThe day before, the head of US Central Command had said something quite\ndifferent. In a video message, Admiral Brad Cooper said the strait is\n\"controlled by the United States and our regional partners, not Iran.\"\nHe said about four hundred merchant ships had crossed in the previous\nseven days.\n\nOne narrow waterway. Two official statements.",
+  "sentences": [
+    "On Saturday, October 17th, Iran's Revolutionary Guards Navy announced that the Strait of Hormuz is closed, and that passage is prohibited.",
+    "That's according to Iran's state news agency, IRNA.",
+    "The day before, the head of US Central Command had said something quite different.",
+    "In a video message, Admiral Brad Cooper said the strait is \"controlled by the United States and our regional partners, not Iran.\"",
+    "He said about four hundred merchant ships had crossed in the previous seven days.",
+    "One narrow waterway.",
+    "Two official statements."
+  ],
+  "original_sha256": "1fd9f91f7e1f45855e0eb4be52780b20c4b087ea336d6f3798698f10c4def5ed",
+  "excerpt_sha256": "76b3cf438cc455649a25013dbd45a2ab15046c3750aa6a84b96f55fafe00c463",
+  "information_snapshot": "2026-10-18",
+  "status": "TECHNICAL DRAFT — factual and perceptual review pending",
+  "voice": "am_michael",
+  "voice_status": "Provisional American-English male voice; final casting not approved.",
+  "voice_language": "en-us",
+  "fps": 30,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "max_audio_clips": 10,
+  "source_note": "Claims reproduced from the supplied script, not independently reverified for this technical pilot.",
+  "source_reference": "https://www.foxnews.com/world/vast-majority-irans-attempted-attacks-strait-hormuz-unsuccessful-centcom-spokesman-says"
+}

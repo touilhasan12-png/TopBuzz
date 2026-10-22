@@ -1,0 +1,110 @@
+{
+  "name": "Hormuz technical pilot",
+  "run-name": "Hormuz pilot · ${{ inputs.dispatch_tag }}",
+  "on": {
+    "workflow_dispatch": {
+      "inputs": {
+        "dispatch_tag": {
+          "description": "Unique manual pilot dispatch identifier",
+          "required": true,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "concurrency": {
+    "group": "topbuzz-hormuz-pilot",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "pilot": {
+      "name": "Render and check 1080p pilot",
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 25,
+      "env": {
+        "OMP_NUM_THREADS": "2",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PYTHONUNBUFFERED": "1",
+        "CI": "true"
+      },
+      "steps": [
+        {
+          "name": "Check out engine source",
+          "uses": "actions/checkout@v4",
+          "with": {
+            "persist-credentials": false
+          }
+        },
+        {
+          "name": "Use Node 22",
+          "uses": "actions/setup-node@v4",
+          "with": {
+            "node-version": "22"
+          }
+        },
+        {
+          "name": "Use Python 3.11",
+          "uses": "actions/setup-python@v5",
+          "with": {
+            "python-version": "3.11"
+          }
+        },
+        {
+          "name": "Install CPU media tools",
+          "run": "sudo apt-get update -qq\nsudo apt-get install -y -qq ffmpeg espeak-ng fonts-dejavu-core"
+        },
+        {
+          "name": "Install pinned project dependencies",
+          "run": "python -m pip install --disable-pip-version-check -r requirements.txt\nnpm install --no-audit --no-fund"
+        },
+        {
+          "name": "Fetch and verify licensed assets",
+          "shell": "bash",
+          "run": "set -euo pipefail\nmkdir -p models public out data\ncurl -fL --retry 2 --connect-timeout 20 --max-time 240 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx' -o models/kokoro-v1.0.onnx\ncurl -fL --retry 2 --connect-timeout 20 --max-time 180 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin' -o models/voices-v1.0.bin\nprintf '%s\\n' 'beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a  models/kokoro-v1.0.onnx' 'bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d  models/voices-v1.0.bin' | sha256sum -c -\ncurl -fL --retry 2 --max-time 180 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson' -o data/natural-earth.json\ncurl -fL --retry 2 --max-time 90 'https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/Manrope%5Bwght%5D.ttf' -o public/Manrope.ttf\ncurl -fL --retry 2 --max-time 90 'https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-Bold.ttf' -o public/BarlowCondensed-Bold.ttf\ncurl -fL --retry 2 --max-time 90 'https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt' -o public/Manrope-OFL.txt\ncurl -fL --retry 2 --max-time 90 'https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/OFL.txt' -o public/BarlowCondensed-OFL.txt\n"
+        },
+        {
+          "name": "Create provisional US-male narration and captions",
+          "run": "npm run prepare:audio"
+        },
+        {
+          "name": "Prepare deterministic map and SVG chart",
+          "run": "npm run prepare:visuals"
+        },
+        {
+          "name": "Typecheck the composition",
+          "run": "npm run check"
+        },
+        {
+          "name": "Render native 1080p proofs and video",
+          "run": "npm run render"
+        },
+        {
+          "name": "Record dependencies and package editable source",
+          "run": "python -m pip freeze > out/python-environment.txt\nnpm ls --depth=0 > out/node-environment.txt\npython scripts/package_source.py\ncp public/master.wav out/master-audio.wav\ncp README.md out/README.txt"
+        },
+        {
+          "name": "Check format, coverage, zones and proof frames",
+          "run": "npm run qa"
+        },
+        {
+          "name": "Retain pilot artifact for user-monitored completion",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "hormuz-pilot-${{ inputs.dispatch_tag }}",
+            "path": "out/",
+            "if-no-files-found": "error",
+            "retention-days": 2,
+            "compression-level": 0
+          }
+        },
+        {
+          "name": "Write review checklist",
+          "run": "printf \"%s\\n\" \"## Technical pilot ready\" \"The complete production has not begun.\" \"Human factual, visual and audio review is pending.\" \"Drive delivery requires a later, separate step after the user reports completion.\" >> \"$GITHUB_STEP_SUMMARY\""
+        }
+      ]
+    }
+  }
+}

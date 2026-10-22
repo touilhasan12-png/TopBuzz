@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import * as echarts from 'echarts';
+import {geoMercator,geoPath,geoArea,geoGraticule} from 'd3-geo';
+fs.mkdirSync('public',{recursive:true});
+const raw=JSON.parse(fs.readFileSync('data/natural-earth.json','utf8'));
+const codes=new Set(['IRN','OMN','ARE','SAU','IRQ','KWT','QAT','BHR']);
+const features=raw.features.filter(f=>codes.has(f.properties.ADM0_A3));
+if(features.length<7)throw new Error('Natural Earth country selection failed');
+const projection=geoMercator().center([54,27]).scale(3300).translate([550,265]).clipExtent([[0,0],[1100,530]]);
+const path=geoPath(projection);
+function fix(f){if(geoArea(f)>2*Math.PI){const reverse=poly=>poly.forEach(r=>r.reverse());if(f.geometry.type==='Polygon')reverse(f.geometry.coordinates);if(f.geometry.type==='MultiPolygon')f.geometry.coordinates.forEach(reverse);}return f;}
+const land=features.map(f=>`<path d="${path(fix(f))}" fill="${f.properties.ADM0_A3==='IRN'?'#29495C':'#22394A'}" stroke="#5E788A" stroke-width="1.05"/>`).join('');
+const grids=path(geoGraticule().step([2,2])());
+const marks=[['IRAN',54.1,29.2],['OMAN',57.5,23.9],['UAE',53.7,24.2]];
+const labels=marks.map(([name,x,y])=>{let [a,b]=projection([x,y]);return `<text x="${a}" y="${b}" fill="#C2CFD7" font-family="DejaVu Sans,sans-serif" font-size="21" text-anchor="middle" letter-spacing="4">${name}</text>`;}).join('');
+const [hx,hy]=projection([56.25,26.55]);
+const route=path({type:'LineString',coordinates:[[50.7,27.1],[53,26.4],[55.4,26.5],[56.25,26.55],[57.1,25.7],[58.2,24.9]]});
+const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="530" viewBox="0 0 1100 530"><defs><radialGradient id="o"><stop stop-color="#15374A"/><stop offset="1" stop-color="#091B2A"/></radialGradient><clipPath id="map"><rect width="1100" height="530" rx="22"/></clipPath></defs><g clip-path="url(#map)"><rect width="1100" height="530" fill="url(#o)"/><path d="${grids}" fill="none" stroke="#6D91AA" stroke-opacity=".13" stroke-width=".7"/>${land}<path d="${route}" fill="none" stroke="#E3B16E" stroke-width="2.5" stroke-dasharray="8 7"/>${labels}<circle cx="${hx}" cy="${hy}" r="18" fill="none" stroke="#E3B16E" stroke-opacity=".35"/><circle cx="${hx}" cy="${hy}" r="5" fill="#E3B16E"/><path d="M${hx+10},${hy} L${hx+38},${hy+36} H${hx+130}" fill="none" stroke="#E3B16E" stroke-width="1.5"/><text x="${hx+47}" y="${hy+65}" fill="#F0DFBF" font-family="DejaVu Sans,sans-serif" font-size="21">HORMUZ</text><text x="320" y="220" fill="#8EACBD" font-size="20" letter-spacing="2" font-family="DejaVu Sans,sans-serif">PERSIAN GULF</text></g></svg>`;
+fs.writeFileSync('public/map.svg',svg);
+const chart=echarts.init(null,null,{renderer:'svg',ssr:true,width:524,height:126});
+chart.setOption({animation:false,backgroundColor:'transparent',grid:{left:8,right:14,top:7,bottom:34},xAxis:{type:'value',min:0,max:400,interval:100,axisLabel:{color:'#A4B1BD',fontSize:17},splitLine:{lineStyle:{color:'#304657',width:1}},axisLine:{show:false},axisTick:{show:false}},yAxis:{type:'category',data:[''],show:false},series:[{type:'bar',data:[400],barWidth:36,itemStyle:{color:'#E3B16E',borderRadius:[0,6,6,0]},silent:true}],textStyle:{fontFamily:'DejaVu Sans,sans-serif'}});
+fs.writeFileSync('public/chart.svg',chart.renderToSVGString());chart.dispose();
+fs.writeFileSync('out/map-source.json',JSON.stringify({source:'Natural Earth 1:10 million admin-0 countries',license:'public domain',url:'https://www.naturalearthdata.com/about/terms-of-use/',warning:'1:10m is a map scale, not 10-metre accuracy; schematic corridor is not AIS.'},null,2));
+console.log('Visual assets ready; server-side SVG charts have animation disabled.');
