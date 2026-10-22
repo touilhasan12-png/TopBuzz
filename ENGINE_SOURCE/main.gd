@@ -123,18 +123,24 @@ func _bg(key: String, cam: Vector2 = Vector2.ZERO, zoom: float = 1.045, tint: Co
 	var top_left := (Vector2(W, H) - size) * 0.5 - cam
 	draw_texture_rect(tex, Rect2(top_left, size), false, tint)
 
-func _sprite(key: String, position: Vector2, width: float, rotation: float = 0.0, tint: Color = Color.WHITE) -> void:
+func _sprite(key: String, position: Vector2, width: float, rotation: float = 0.0, tint: Color = Color.WHITE, flip_h: bool = false) -> void:
 	var tex: Texture2D = art.get(key)
 	if tex == null or width <= 0.0: return
 	var scale: float = width / float(tex.get_width())
-	draw_set_transform(position, rotation, Vector2(scale, scale))
+	var scale_x: float = -scale if flip_h else scale
+	draw_set_transform(position, rotation, Vector2(scale_x, scale))
 	draw_texture(tex, -tex.get_size() * 0.5, tint)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _label(text: String, x: float, y: float, size: int, color: Color = INK, align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT, width: float = 650.0, use_serif: bool = false) -> void:
 	var f: Font = serif if use_serif else sans
-	draw_string(f, Vector2(x + 1.5, y + 2.0), text, align, width, size, Color(0.10, 0.10, 0.10, 0.35))
-	draw_string(f, Vector2(x, y), text, align, width, size, color)
+	var origin_x := x
+	if align == HORIZONTAL_ALIGNMENT_CENTER:
+		origin_x -= width * 0.5
+	elif align == HORIZONTAL_ALIGNMENT_RIGHT:
+		origin_x -= width
+	draw_string(f, Vector2(origin_x + 1.5, y + 2.0), text, align, width, size, Color(0.10, 0.10, 0.10, 0.35))
+	draw_string(f, Vector2(origin_x, y), text, align, width, size, color)
 
 func _cloud(key_pos: Vector2, width: float, alpha: float = 0.65, rotation: float = 0.0) -> void:
 	_sprite("clouds", key_pos, width, rotation, Color(1.0, 1.0, 1.0, alpha))
@@ -361,7 +367,7 @@ func _shot_memorial(t: float) -> void:
 	_bg("memorial", Vector2.ZERO, 1.045)
 	var jet_u := clampf(u*1.45,0.0,1.0)
 	var jet_pos := Vector2(820.0-550.0*jet_u, 660.0+10.0*sin(u*TAU))
-	_sprite("p80", jet_pos, 265.0, PI+0.02*sin(u*TAU), Color(0.86,0.88,0.88,0.60))
+	_sprite("p80", jet_pos, 265.0, 0.02*sin(u*TAU), Color(0.86,0.88,0.88,0.60), true)
 	var medal_alpha := _smooth(clampf((u-0.18)/0.28,0.0,1.0))
 	_sprite("medal", Vector2(360.0, 442.0), 166.0+5.0*sin(u*TAU), 0.0, Color(1,1,1,medal_alpha))
 	var title_alpha := _smooth(clampf((u-0.28)/0.24,0.0,1.0))
