@@ -101,6 +101,18 @@
           }
         },
         {
+          "name": "Preserve failure diagnostics",
+          "if": "failure()",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "hormuz-pilot-diagnostics-${{ inputs.dispatch_tag }}",
+            "path": "out/",
+            "if-no-files-found": "warn",
+            "retention-days": 2,
+            "compression-level": 0
+          }
+        },
+        {
           "name": "Write review checklist",
           "run": "printf \"%s\\n\" \"## Technical pilot ready\" \"The complete production has not begun.\" \"Human factual, visual and audio review is pending.\" \"Drive delivery requires a later, separate step after the user reports completion.\" >> \"$GITHUB_STEP_SUMMARY\""
         }
