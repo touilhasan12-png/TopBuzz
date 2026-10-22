@@ -1,6 +1,6 @@
 # TopBuzz — Golden Gate loop test shot
 
-A small original 2D Godot proof of concept inspired by the analysis of the `videotest` reference: bold outlines, flat color, a simple illustrated bridge, a reusable-looking cartoon aircraft, a drawn smoke trail, and bottom-centered captions. It does **not** reuse the reference video's frames or artwork.
+This is a polished 8-second 2D cutout-animation proof of concept based on the visual analysis of the `videotest` reference. It uses original illustrated assets, a rotating aircraft sprite, a drawn-on contrail, a gentle camera push, and subtitle-style captions. It does **not** reuse frames or artwork from the reference video.
 
 ## Output target
 
@@ -11,16 +11,18 @@ A small original 2D Godot proof of concept inspired by the analysis of the `vide
 
 ## Run locally
 
-Open this folder in Godot 4.4.1 or later and run the main scene. For an offline-rendered AVI:
+Open this folder in Godot 4.4.1 or later and run the main scene. To render an offline AVI:
 
 ```sh
 godot --path ENGINE_SOURCE --write-movie output/golden-gate.avi --fixed-fps 30 --resolution 720x1280 --quit-after 240
 ```
 
-The GitHub Actions workflow performs that render, converts the AVI to H.264 MP4 with FFmpeg, and publishes the MP4 as a downloadable workflow artifact.
+The GitHub Actions workflow validates the project, renders the AVI, converts it to H.264 MP4 with FFmpeg, checks the output dimensions and frame rate, and uploads the MP4 as a downloadable workflow artifact.
 
-## Structure
+## Source assets
 
-- `project.godot` — viewport and renderer settings
-- `main.tscn` — the single test scene
-- `main.gd` — original vector-like drawings and deterministic animation
+- `art/golden_gate_background.png` — original illustrated portrait background
+- `art/fighter_cutout.png` — isolated aircraft/pilot sprite
+- `main.gd` — camera motion, aircraft orbit, contrail, and captions
+- `main.tscn` — scene composition
+- `TEST_PLAN.md` — acceptance checks

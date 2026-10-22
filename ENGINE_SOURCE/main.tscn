@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="Texture2D" path="res://art/golden_gate_background.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://art/fighter_cutout.png" id="3_plane"]
 
 [node name="GoldenGateLoop" type="Node2D"]
 script = ExtResource("1_main")
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("2_background")
+position = Vector2(360, 640)
+z_index = -10
+
+[node name="Plane" type="Sprite2D" parent="."]
+texture = ExtResource("3_plane")
+position = Vector2(430, 326)
+z_index = 5
