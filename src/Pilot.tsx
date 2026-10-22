@@ -10,8 +10,8 @@ const Frame:React.FC<{children:React.ReactNode}>=({children})=><div style={{posi
 function Hero({p,t}:{p:number;t:number}) {
  // AI-generated illustrative cutaway; frame-driven punch-ins create a brisk edit without misrepresenting it as archival footage.
  const beat=Math.floor(t*1.35)%4;
- const scale=1.08+(beat%2)*.13+clamp((t*1.35)%1)*.035;
- const x=[-1.8,1.1,-2.5,.6][beat], y=[-1.2,.7,1.0,-.4][beat];
+ const scale=[1.08,1.48,1.28,1.62][beat]+clamp((t*1.35)%1)*.025;
+ const x=[0,-118,72,-62][beat], y=[0,-18,24,-30][beat];
  return <Frame>
   <Img src={staticFile('tanker-hero.png')} style={{width:1100,height:530,objectFit:'cover',transform:`translate(${x}px,${y}px) scale(${scale})`,filter:'saturate(.86) contrast(1.08)',transition:'none'}}/>
   <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,rgba(5,12,20,.12),transparent 60%),linear-gradient(0deg,rgba(4,11,18,.78),transparent 34%)'}}/>
@@ -21,7 +21,7 @@ function Hero({p,t}:{p:number;t:number}) {
  </Frame>;
 }
 function MapView({t}:{t:number}) {return <Frame>
- <Img src={staticFile('map.svg')} style={{width:1100,height:530,transform:`scale(${1.04+((Math.floor(t*1.25)%3)*.035)+clamp((t*1.25)%1)*.025}) translate(${Math.sin(t*7)*3}px,${Math.cos(t*6)*2}px)`}}/>
+ <Img src={staticFile('map.svg')} style={{width:1100,height:530,transform:`scale(${1.05+((Math.floor(t*1.6)%3)*.075)+clamp((t*1.6)%1)*.035}) translate(${Math.sin(t*7)*18}px,${Math.cos(t*6)*12}px)`}}/>
  <div style={{position:'absolute',left:24,top:20,fontSize:16,letterSpacing:2,color:C.muted}}>REGIONAL CONTEXT / STRAIT OF HORMUZ</div>
  <div style={{position:'absolute',left:24,bottom:20,fontSize:15,color:C.muted}}>SCHEMATIC CORRIDOR · NOT AIS · NOT A NAVIGATION CHART</div>
  </Frame>;}
