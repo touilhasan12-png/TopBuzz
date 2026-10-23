@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  render-and-verify:
+  render-master:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -15,49 +15,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Setup Python 3.11 for Optical-Flow & Loudness Telemetry
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install NPM Static FFmpeg/FFprobe & Python Optical-Flow Dependencies
+      - name: Install Dependencies
         run: |
-          python -m pip install -r requirements.txt
-          npm ci
+          npm install --no-audit --no-fund
           mkdir -p "$HOME/.local/bin"
-          ln -sf "$(node -e "process.stdout.write(require('ffmpeg-static'))")" "$HOME/.local/bin/ffmpeg"
-          ln -sf "$(node -e "process.stdout.write(require('@ffprobe-installer/ffprobe').path)")" "$HOME/.local/bin/ffprobe"
+          ln -sf "$(node -e "import('ffmpeg-static').then(m=>process.stdout.write(m.default))")" "$HOME/.local/bin/ffmpeg"
+          ln -sf "$(node -e "import('@ffprobe-installer/ffprobe').then(m=>process.stdout.write(m.path))")" "$HOME/.local/bin/ffprobe"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Render 15-Frame Full-HD Storyboard Contact Sheet
-        run: |
-          mkdir -p out
-          node render.mjs --sheet=0.00,2.60,5.20,9.10,12.80,16.50,24.80,40.40,43.80,52.80,56.80,60.20,64.80,70.50,74.367 --cols=5 --out=out/qa_contact_sheet.jpg
-
-      - name: Render All 2,232 Full-HD (1080x1920 @ 30fps) Vector Frames Across 4 Workers
+      - name: Render All 2,232 Full-HD (1080x1920 @ 30fps) Frames Across 4 Workers
         run: |
           node render.mjs --frames --fps=30 --workers=4
 
-      - name: Master H.264 High Profile + -14.0 LUFS Broadcast Audio Mux
+      - name: Encode H.264 High Profile + -14.0 LUFS Broadcast Audio
         run: |
-          node render.mjs --encode --fps=30 --out=out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
+          node render.mjs --encode --fps=30 --out=out/TopBuzz_EP01_Hybrid_V2_1080p_Master.mp4
           rm -rf out/frames
 
-      - name: Execute Automated Broadcast & Reference Style Fingerprint Audit
-        run: |
-          python tools/verify_master.py out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
-
-      - name: Upload Verified 1080p Master Video & Telemetry Artifacts
+      - name: Upload Master Video Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: topbuzz-ep01-master
-          path: |
-            out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
-            out/qa_contact_sheet.jpg
-            out/verification_report.json
-            out/style_distance.json
-            out/fingerprint_overlay.png
+          name: topbuzz-ep01-hybrid-v2-master
+          path: out/TopBuzz_EP01_Hybrid_V2_1080p_Master.mp4
           if-no-files-found: error

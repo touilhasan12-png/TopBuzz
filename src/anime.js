@@ -549,6 +549,25 @@ window.EXTRA_FONTS = [['800 42px "Montserrat"', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ01234
 // GRADE is reset every frame; a shot may change it: { bloom 0..1, vignette 0..1, tint }.
 let GRADE = {};
 let _small = null;
+let _grainPat = null;
+function ensurePaperGrain(g) {
+  if (_grainPat) return _grainPat;
+  const gc = makeCanvas(256, 256);
+  const gx = gc.getContext('2d');
+  const img = gx.createImageData(256, 256);
+  const d = img.data;
+  const r = rnd('hybrid-paper-grain');
+  for (let i = 0; i < d.length; i += 4) {
+    const v = 226 + Math.floor(r() * 29);
+    d[i] = v;
+    d[i + 1] = v - 2;
+    d[i + 2] = v - 6;
+    d[i + 3] = 255;
+  }
+  gx.putImageData(img, 0, 0);
+  _grainPat = g.createPattern(gc, 'repeat');
+  return _grainPat;
+}
 window.ENGINE = {
   begin(t) { GRADE = { bloom: .22, vignette: .22 }; setTOD('day'); },
   end(t) {
@@ -558,6 +577,15 @@ window.ENGINE = {
       _small = _small || makeCanvas(W / 8, H / 8); const s = _small.getContext('2d');
       s.filter = 'blur(3px) brightness(1.15)'; s.clearRect(0, 0, W / 8, H / 8); s.drawImage(OUTC, 0, 0, W / 8, H / 8); s.filter = 'none';
       g.save(); g.globalCompositeOperation = 'screen'; g.globalAlpha = GRADE.bloom * .6; g.drawImage(_small, 0, 0, W, H); g.restore();
+    }
+    const gp = ensurePaperGrain(g);
+    if (gp) {
+      g.save();
+      g.globalCompositeOperation = 'multiply';
+      g.globalAlpha = 0.08;
+      g.fillStyle = gp;
+      g.fillRect(0, 0, W, H);
+      g.restore();
     }
     if (GRADE.vignette) { const v = g.createRadialGradient(W / 2, H / 2, H * .45, W / 2, H / 2, H * 1.05); v.addColorStop(0, 'rgba(40,20,60,0)'); v.addColorStop(1, `rgba(40,20,60,${GRADE.vignette})`); g.fillStyle = v; g.fillRect(0, 0, W, H); }
   },

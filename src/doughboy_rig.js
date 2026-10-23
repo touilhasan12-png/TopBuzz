@@ -579,10 +579,18 @@ function drawDoughboy(cfg) {
     frontPropRender = null, // rendered ABOVE front hand (e.g. close-up radio microphone!)
   } = cfg;
 
+  const isVowelOpen = viseme === 'D' || viseme === 'C' || viseme === 'E' ? 1.0 : viseme === 'B' || viseme === 'H' ? 0.55 : 0.0;
+  // Rev2D-inspired secondary spring follow-through on speech vowels & panic motion
+  const speechSpring = isVowelOpen * 0.022 + openBoost * 0.016;
+  const effSquash = squash * (1 + speechSpring);
+  const effHatLift = hatLift + isVowelOpen * 5.5 + stress * 3.5;
+  const effHatTilt = hatTilt + facing * isVowelOpen * 0.032;
+  const effHeadTilt = headTilt + facing * isVowelOpen * -0.024;
+
   ctx.save();
-  ctx.translate(x, y + bob);
+  ctx.translate(x, y + bob - speechSpring * 140);
   ctx.scale(scale, scale);
-  ctx.scale(2 - squash, squash);
+  ctx.scale(2 - effSquash, effSquash);
   ctx.rotate(bodyLean);
 
   const R = 98;
@@ -728,6 +736,34 @@ function drawDoughboy(cfg) {
   tg.addColorStop(0.68, PAL.main);
   tg.addColorStop(1.0, PAL.dark);
   cel(torsoPts, tg, PAL.dark, 0.58, [0.45 * facing, -0.75]);
+  // Claude-Animation-Skill inspired hand-inked cross-hatching inside uniform shadow flank
+  ctx.save();
+  poly(torsoPts);
+  ctx.clip();
+  ctx.globalAlpha = 0.22;
+  ctx.strokeStyle = '#090D16';
+  ctx.lineWidth = 2.6;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 9; i++) {
+    const hy0 = torsoTopY + 38 + i * 32;
+    const sx0 = -facing * 52;
+    const sx1 = -facing * 112;
+    ctx.beginPath();
+    ctx.moveTo(sx0, hy0);
+    ctx.lineTo(sx1, hy0 + 18);
+    ctx.stroke();
+  }
+  // Subtle crisp rim highlight on lit shoulder edge
+  ctx.globalAlpha = 0.26;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 4.0;
+  ctx.beginPath();
+  ctx.moveTo(facing * 42, torsoTopY - 2);
+  ctx.quadraticCurveTo(facing * 92, torsoTopY + 18, facing * 82, 4);
+  ctx.stroke();
+  ctx.restore();
+
+  poly(torsoPts);
   ctx.lineWidth = 4.6;
   ctx.strokeStyle = RIG_INK;
   ctx.stroke();
@@ -841,7 +877,7 @@ function drawDoughboy(cfg) {
   // ── 3D AIRBRUSH SHADED DOUGHBOY HEAD ────────────────────────────────────
   ctx.save();
   ctx.translate(headX, headY);
-  ctx.rotate(headTilt);
+  ctx.rotate(effHeadTilt);
 
   // Shaded neck cylinder
   const ng = ctx.createLinearGradient(-28, R * 0.65, 28, R * 1.05);
@@ -921,7 +957,7 @@ function drawDoughboy(cfg) {
     ctx.restore();
   }
 
-  drawRoleHat(role, 0, 0, R, facing, hatLift, hatTilt);
+  drawRoleHat(role, 0, 0, R, facing, effHatLift, effHatTilt);
   ctx.restore(); // end head
 
   renderArm(frontHand, true);

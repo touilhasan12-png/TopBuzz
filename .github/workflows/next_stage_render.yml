@@ -1,0 +1,99 @@
+name: Render Remaining Engines & Hybrid V2 Master
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render_lemo_opuscar_20s:
+    name: Render 06_LemoOpuscar_FilmEngine (20.00s @ 1080x1920)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund
+      - name: Clone lemomo-ai/lemo-opuscar & Render 20.00s
+        env:
+          OUT_MP4: /tmp/out_video/06_LemoOpuscar_FilmEngine_20s.mp4
+        run: |
+          mkdir -p /tmp/gh_engines /tmp/out_video
+          ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/node_modules
+          git clone --depth 1 https://github.com/lemomo-ai/lemo-opuscar.git /tmp/gh_engines/lemo_opuscar
+          node benchmarks/06_lemo_opuscar/build_and_render.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage2-06-lemo-opuscar
+          path: /tmp/out_video/06_LemoOpuscar_FilmEngine_20s.mp4
+
+  render_linkwork_cartoonface_20s:
+    name: Render 07_Linkwork_CartoonFace (20.00s @ 1080x1920)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund
+      - name: Clone 0xbadfood/Linkwork + christophschuhmann/cartoon-face-generator & Render 20.00s
+        env:
+          OUT_MP4: /tmp/out_video/07_Linkwork_CartoonFace_20s.mp4
+        run: |
+          mkdir -p /tmp/gh_engines /tmp/out_video
+          ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/node_modules
+          git clone --depth 1 https://github.com/0xbadfood/Linkwork.git /tmp/gh_engines/linkwork
+          git clone --depth 1 https://github.com/christophschuhmann/cartoon-face-generator.git /tmp/gh_engines/cartoon_face
+          npx tsx benchmarks/07_linkwork_cartoonface/build_and_render.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage2-07-linkwork-cartoonface
+          path: /tmp/out_video/07_Linkwork_CartoonFace_20s.mp4
+
+  render_hybrid_v2_master:
+    name: Render Hybrid V2 Unified Engine (20.00s Slice + Full 74.40s Episode 01 Master)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p "$HOME/.local/bin" /tmp/out_video
+          ln -sf "$(node -e "import('ffmpeg-static').then(m=>process.stdout.write(m.default))")" "$HOME/.local/bin/ffmpeg"
+          ln -sf "$(node -e "import('@ffprobe-installer/ffprobe').then(m=>process.stdout.write(m.path))")" "$HOME/.local/bin/ffprobe"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Render All 2,232 Full-HD Frames Across 4 Workers & Encode Both Full Master + 20.00s Slice
+        run: |
+          node render.mjs --frames --fps=30 --workers=4
+          node render.mjs --encode --fps=30 --out=/tmp/out_video/TopBuzz_EP01_Hybrid_V2_1080p_Master.mp4
+          ffmpeg -y -ss 0 -t 20.000 \
+            -i /tmp/out_video/TopBuzz_EP01_Hybrid_V2_1080p_Master.mp4 \
+            -c:v libx264 -preset fast -crf 18 -r 30 -pix_fmt yuv420p \
+            -c:a aac -b:a 192k \
+            /tmp/out_video/08_Hybrid_V2_Unified_20s.mp4
+          rm -rf out/frames
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage2-08-hybrid-v2
+          path: |
+            /tmp/out_video/08_Hybrid_V2_Unified_20s.mp4
+            /tmp/out_video/TopBuzz_EP01_Hybrid_V2_1080p_Master.mp4
+
+  package_deliverables:
+    name: Package All Stage-2 Rendered Videos
+    needs: [render_lemo_opuscar_20s, render_linkwork_cartoonface_20s, render_hybrid_v2_master]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: stage2-*
+          path: /tmp/deliverables
+          merge-multiple: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-Stage2-All-Videos
+          path: /tmp/deliverables/*.mp4
+          retention-days: 30
