@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { Socket } from "node:net";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { pathToFileURL, fileURLToPath } from "node:url";
@@ -403,7 +404,8 @@ async function runWorkerRange(startFrame: number, endFrame: number) {
 
   const stage = createCanvas(W, H);
   const ctx = stage.getContext("2d");
-  const outPipe = fs.createWriteStream("", { fd: 3 });
+  // child_process extra pipes are sockets on Unix, not regular files.
+  const outPipe = new Socket({ fd: 3, readable: false, writable: true });
 
   // Warmup physics for frames before startFrame so spring/hair/body momentum matches seamlessly across chunk boundaries!
   const warmupStart = Math.max(0, startFrame - 18);
