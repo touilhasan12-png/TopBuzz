@@ -1,8 +1,0 @@
-# Godot generated data
-.godot/
-*.import
-
-# Render outputs (downloaded separately as GitHub Actions artifacts)
-output/
-*.avi
-*.mp4
