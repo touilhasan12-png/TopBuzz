@@ -772,10 +772,12 @@ scene('s17_okinawa_miracle_survival', 67.40, 73.65, (lt, d, t) => {
   });
 });
 
-// ── S18 [73.65 -> 74.40s]: SEAMLESS PERISCOPE LOOP CONVERGING TO `t = 0.000s`!
+// ── S18 [73.65 -> 74.40s]: SEAMLESS PERISCOPE LOOP CONVERGING TO EXACT `t = 0.000s` CAMERA & POSE!
 scene('s18_seamless_loop_bridge', 73.65, 74.40, (lt, d, t) => {
-  const u = clamp(lt / d, 0, 1);
-  renderPeriscopeLoopState((1 - u) * 0.15, 0);
+  const u = clamp(lt / Math.max(0.01, d - 0.14), 0, 1);
+  dramaticZoom(1.0, 555, 895, 0, () => {
+    renderPeriscopeLoopState((1 - u) * 0.12, 0);
+  });
   if (u < 0.85) {
     ctx.save();
     ctx.fillStyle = `rgba(9, 12, 17, ${(1 - u / 0.85) * 0.18})`;
