@@ -1,0 +1,59 @@
+name: Render TopBuzz 2D Master Episode
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  render-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout TopBuzz Engine
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install System FFmpeg, Fonts & Python Optical-Flow Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-montserrat fonts-dejavu-core
+          fc-cache -fv
+          python3 -m pip install --upgrade pip
+          python3 -m pip install opencv-python-headless numpy scipy matplotlib
+          npm ci
+
+      - name: Render 15-Frame Full-HD Storyboard Contact Sheet
+        run: |
+          mkdir -p out
+          node render.mjs --sheet=0.00,2.60,5.20,9.10,12.80,16.50,24.80,40.40,43.80,52.80,56.80,60.20,64.80,70.50,74.367 --cols=5 --out=out/qa_contact_sheet.jpg
+
+      - name: Render All 2,232 Full-HD (1080x1920 @ 30fps) Vector Frames Across 4 Workers
+        run: |
+          node render.mjs --frames --fps=30 --workers=4
+
+      - name: Master H.264 High Profile + -14.0 LUFS Broadcast Audio Mux
+        run: |
+          node render.mjs --encode --fps=30 --out=out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
+          rm -rf out/frames
+
+      - name: Execute Automated Broadcast & Reference Style Fingerprint Audit
+        run: |
+          python3 tools/verify_master.py out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
+
+      - name: Upload Verified 1080p Master Video & Telemetry Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: topbuzz-ep01-master
+          path: |
+            out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
+            out/qa_contact_sheet.jpg
+            out/verification_report.json
+            out/style_distance.json
+            out/fingerprint_overlay.png
+          if-no-files-found: error

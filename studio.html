@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TopBuzz 2D Animation Studio — DD-579</title>
+<style>
+  @font-face {
+    font-family: 'Montserrat';
+    src: local('Montserrat ExtraBold'), local('Montserrat-ExtraBold'), local('Montserrat Black'), local('Montserrat-Black'), local('Montserrat');
+    font-weight: 800 900;
+  }
+  html, body { margin: 0; padding: 0; background: #12141a; color: #eee; font: 13px system-ui, sans-serif; overflow: hidden; }
+  main { padding: 0; display: block; }
+  #out { display: block; width: 1080px; height: 1920px; background: #12141a; }
+  .bar { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <canvas id="out" width="1080" height="1920"></canvas>
+  <div class="bar"><input id="scrub" type="range" min="0" max="74.4" step="0.0333" value="0"><span id="tt">loading…</span></div>
+</main>
+<script src="src/config.js"></script>
+<script src="src/voice_data.js"></script>
+<script src="src/kit.js"></script>
+<script src="src/anime.js"></script>
+<script src="src/compat_bridge.js"></script>
+<script src="src/doughboy_rig.js"></script>
+<script src="src/naval_sets.js"></script>
+<script src="src/scenes/willie_dee.js"></script>
+</body>
+</html>
