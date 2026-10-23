@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "inputsHash": "9a3ca77c87085830",
+  "image": { "width": 728, "height": 896 },
+  "layers": [
+    { "id": "base", "file": "textures/base.png", "rect": [0, 0, 728, 896] },
+    { "id": "eyeR_ball", "file": "textures/eyeR_ball.png", "rect": [233, 308, 116, 59] },
+    { "id": "eyeR_lower", "file": "textures/eyeR_lower.png", "rect": [234, 309, 110, 55] },
+    { "id": "eyeR_lowerRim", "file": "textures/eyeR_lowerRim.png", "rect": [234, 309, 110, 55] },
+    { "id": "eyeR_crease", "file": "textures/eyeR_crease.png", "rect": [234, 309, 110, 55] },
+    { "id": "eyeR_upper", "file": "textures/eyeR_upper.png", "rect": [234, 309, 110, 55] },
+    { "id": "eyeR_upperRim", "file": "textures/eyeR_upperRim.png", "rect": [234, 309, 110, 55] },
+    { "id": "eyeR_front", "file": "textures/eyeR_front.png", "rect": [254, 309, 79, 35] },
+    { "id": "eyeL_ball", "file": "textures/eyeL_ball.png", "rect": [377, 308, 117, 59] },
+    { "id": "eyeL_lower", "file": "textures/eyeL_lower.png", "rect": [376, 309, 109, 54] },
+    { "id": "eyeL_lowerRim", "file": "textures/eyeL_lowerRim.png", "rect": [376, 309, 109, 54] },
+    { "id": "eyeL_crease", "file": "textures/eyeL_crease.png", "rect": [376, 309, 109, 54] },
+    { "id": "eyeL_upper", "file": "textures/eyeL_upper.png", "rect": [376, 309, 109, 54] },
+    { "id": "eyeL_upperRim", "file": "textures/eyeL_upperRim.png", "rect": [376, 309, 109, 54] },
+    { "id": "eyeL_front", "file": "textures/eyeL_front.png", "rect": [376, 309, 88, 33] },
+    { "id": "mouth", "file": "textures/mouth.png", "rect": [299, 437, 130, 66] },
+    {
+      "id": "sprite_eyes_closed_imageLeft",
+      "file": "textures/sprite_eyes_closed_imageLeft.png",
+      "rect": [225, 301, 131, 72]
+    },
+    {
+      "id": "sprite_eyes_closed_imageRight",
+      "file": "textures/sprite_eyes_closed_imageRight.png",
+      "rect": [369, 301, 132, 72]
+    },
+    {
+      "id": "sprite_mouth_a_mouth",
+      "file": "textures/sprite_mouth_a_mouth.png",
+      "rect": [296, 434, 136, 72]
+    }
+  ],
+  "variants": ["eyes_closed", "mouth_a"],
+  "eyes": {
+    "version": 1,
+    "imageLeft": {
+      "id": "eyeR",
+      "center": [290.7, 337.12],
+      "angle": 0,
+      "u": [
+        -46.7, -45.86, -44.37, -42.46, -38.21, -33.97, -29.72, -25.48, -21.23, -16.98, -12.74, -8.49,
+        -4.25, 0, 4.25, 8.49, 12.74, 16.98, 21.23, 25.48, 29.72, 33.97, 38.21, 42.46, 44.37, 45.86,
+        46.7
+      ],
+      "upper": [
+        -0.02, -1.59, -4.35, -7.56, -9.9, -12.24, -13.76, -14.78, -15.8, -16.74, -17.06, -17.38,
+        -17.7, -18.03, -17.7, -17.38, -17.06, -16.74, -15.8, -14.78, -13.76, -12.24, -9.9, -7.56,
+        -4.35, -1.59, -0.02
+      ],
+      "lower": [
+        -0.02, 1.55, 4.31, 7.52, 9.86, 12.2, 13.74, 14.78, 15.83, 16.8, 17.09, 17.39, 17.69, 17.98,
+        17.69, 17.39, 17.09, 16.8, 15.83, 14.78, 13.74, 12.2, 9.86, 7.52, 4.31, 1.55, -0.02
+      ],
+      "top": [
+        -14.83, -15.43, -16.5, -17.83, -20.1, -21.47, -22.85, -24.23, -25.48, -25.89, -26.29, -26.7,
+        -27.11, -27.52, -27.11, -26.7, -26.29, -25.89, -25.48, -24.23, -22.85, -21.47, -20.1, -17.83,
+        -16.5, -15.43, -14.83
+      ],
+      "bottom": [
+        14.83, 15.44, 16.53, 17.87, 20.15, 21.5, 22.85, 24.21, 25.43, 25.84, 26.25, 26.66, 27.07,
+        27.48, 27.07, 26.66, 26.25, 25.84, 25.43, 24.21, 22.85, 21.5, 20.15, 17.87, 16.53, 15.44,
+        14.83
+      ],
+      "grow": 1.5,
+      "lash": 11,
+      "lowerLash": 8,
+      "shift": [7.65, 4.59],
+      "rect": [234, 309, 110, 55],
+      "colors": { "skin": "#f9be9c", "white": "#fafafa", "iris": "#282621", "lash": "#2b2928" },
+      "occluded": 0.04
+    },
+    "imageRight": {
+      "id": "eyeL",
+      "center": [435.24, 337.06],
+      "angle": 0,
+      "u": [
+        -47.25, -46.39, -44.89, -42.96, -38.67, -34.38, -30.08, -25.79, -21.5, -17.21, -12.92, -8.63,
+        -4.33, -0.04, 4.25, 8.54, 12.83, 17.12, 21.41, 25.71, 30, 34.29, 38.58, 42.87, 44.8, 46.31,
+        47.16
+      ],
+      "upper": [
+        0.04, -1.53, -4.27, -7.57, -9.87, -12.17, -13.71, -14.76, -15.81, -16.78, -17.08, -17.37,
+        -17.67, -17.97, -17.67, -17.38, -17.08, -16.79, -15.84, -14.79, -13.74, -12.23, -9.93, -7.63,
+        -4.4, -1.57, 0.04
+      ],
+      "lower": [
+        0.04, 1.59, 4.29, 7.55, 9.84, 12.14, 13.68, 14.74, 15.79, 16.76, 17.08, 17.4, 17.72, 18.04,
+        17.72, 17.4, 17.09, 16.77, 15.81, 14.76, 13.71, 12.2, 9.9, 7.61, 4.42, 1.63, 0.04
+      ],
+      "top": [
+        -14.75, -15.37, -16.43, -17.79, -20.09, -21.45, -22.81, -24.17, -25.41, -25.82, -26.23,
+        -26.64, -27.05, -27.46, -27.05, -26.64, -26.23, -25.82, -25.42, -24.18, -22.83, -21.47,
+        -20.12, -17.86, -16.52, -15.44, -14.84
+      ],
+      "bottom": [
+        14.73, 15.34, 16.41, 17.76, 20.07, 21.46, 22.84, 24.23, 25.49, 25.9, 26.31, 26.72, 27.13,
+        27.54, 27.13, 26.72, 26.31, 25.9, 25.49, 24.24, 22.86, 21.48, 20.11, 17.84, 16.49, 15.42,
+        14.81
+      ],
+      "grow": 1.5,
+      "lash": 11,
+      "lowerLash": 8,
+      "shift": [7.74, 4.64],
+      "rect": [376, 309, 109, 54],
+      "colors": { "skin": "#f8be9c", "white": "#fcfcfb", "iris": "#262520", "lash": "#2e2d2c" },
+      "occluded": 0.01
+    }
+  },
+  "mouth": {
+    "version": 1,
+    "line": 5,
+    "colors": { "line": "#030000", "inside": "#220000", "tongue": "#7a3e3e" }
+  },
+  "brows": { "version": 1 },
+  "sprites": {
+    "version": 1,
+    "sprites": [
+      {
+        "id": "eyes_closed",
+        "group": "eyes",
+        "layers": [
+          { "id": "sprite_eyes_closed_imageLeft", "key": "imageLeft", "rect": [225, 301, 131, 72] },
+          {
+            "id": "sprite_eyes_closed_imageRight",
+            "key": "imageRight",
+            "rect": [369, 301, 132, 72]
+          }
+        ],
+        "drawingHash": "4992c44045cca63f",
+        "inputsHash": "d2d52942ca7ed65e",
+        "layersHash": "9a3ca77c87085830",
+        "check": {
+          "outsideDiff": 0.004,
+          "insideChanged": 0.5506,
+          "badShare": 0,
+          "nearDiff": 0.248,
+          "tolerance": 2
+        }
+      },
+      {
+        "id": "mouth_a",
+        "group": "mouth",
+        "layers": [
+          { "id": "sprite_mouth_a_mouth", "key": "mouth", "rect": [296, 434, 136, 72] }
+        ],
+        "drawingHash": "1acea01eed094863",
+        "inputsHash": "c987b2b750486043",
+        "layersHash": "9a3ca77c87085830",
+        "check": {
+          "outsideDiff": 0.012,
+          "insideChanged": 0.952,
+          "badShare": 0,
+          "nearDiff": 2.764,
+          "tolerance": 2
+        }
+      }
+    ],
+    "rejected": []
+  }
+}

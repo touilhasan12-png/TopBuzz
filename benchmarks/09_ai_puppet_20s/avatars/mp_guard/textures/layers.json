@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "inputsHash": "16975a41c418d20c",
+  "image": { "width": 1004, "height": 896 },
+  "layers": [
+    { "id": "base", "file": "textures/base.png", "rect": [0, 0, 1004, 896] },
+    { "id": "eyeR_ball", "file": "textures/eyeR_ball.png", "rect": [372, 327, 110, 46] },
+    { "id": "eyeR_lower", "file": "textures/eyeR_lower.png", "rect": [378, 328, 104, 44] },
+    { "id": "eyeR_lowerRim", "file": "textures/eyeR_lowerRim.png", "rect": [378, 328, 104, 44] },
+    { "id": "eyeR_crease", "file": "textures/eyeR_crease.png", "rect": [378, 328, 104, 44] },
+    { "id": "eyeR_upper", "file": "textures/eyeR_upper.png", "rect": [378, 328, 104, 44] },
+    { "id": "eyeR_upperRim", "file": "textures/eyeR_upperRim.png", "rect": [378, 328, 104, 44] },
+    { "id": "eyeR_front", "file": "textures/eyeR_front.png", "rect": [388, 328, 94, 44] },
+    { "id": "eyeL_ball", "file": "textures/eyeL_ball.png", "rect": [524, 330, 86, 42] },
+    { "id": "eyeL_lower", "file": "textures/eyeL_lower.png", "rect": [525, 329, 83, 43] },
+    { "id": "eyeL_lowerRim", "file": "textures/eyeL_lowerRim.png", "rect": [525, 329, 83, 43] },
+    { "id": "eyeL_crease", "file": "textures/eyeL_crease.png", "rect": [525, 329, 83, 43] },
+    { "id": "eyeL_upper", "file": "textures/eyeL_upper.png", "rect": [525, 329, 83, 43] },
+    { "id": "eyeL_upperRim", "file": "textures/eyeL_upperRim.png", "rect": [525, 329, 83, 43] },
+    { "id": "eyeL_front", "file": "textures/eyeL_front.png", "rect": [532, 329, 76, 43] },
+    { "id": "mouth", "file": "textures/mouth.png", "rect": [425, 489, 154, 62] },
+    {
+      "id": "sprite_eyes_closed_imageLeft",
+      "file": "textures/sprite_eyes_closed_imageLeft.png",
+      "rect": [366, 322, 122, 57]
+    },
+    {
+      "id": "sprite_eyes_closed_imageRight",
+      "file": "textures/sprite_eyes_closed_imageRight.png",
+      "rect": [516, 323, 102, 55]
+    },
+    {
+      "id": "sprite_mouth_a_mouth",
+      "file": "textures/sprite_mouth_a_mouth.png",
+      "rect": [423, 487, 158, 66]
+    }
+  ],
+  "variants": ["eyes_closed", "mouth_a"],
+  "eyes": {
+    "version": 1,
+    "imageLeft": {
+      "id": "eyeR",
+      "center": [427.23, 350.14],
+      "angle": 0,
+      "u": [
+        -43.48, -42.62, -41.09, -39.14, -34.8, -30.45, -26.11, -21.76, -17.42, -13.08, -8.73, -4.39,
+        -0.05, 4.3, 8.64, 12.99, 17.33, 21.67, 26.02, 30.36, 34.7, 39.05, 41, 42.52, 43.39
+      ],
+      "upper": [
+        -0.05, -1.08, -2.89, -5.14, -6.69, -8.23, -9.09, -9.8, -10.51, -10.88, -11.1, -11.32, -11.54,
+        -11.32, -11.1, -10.88, -10.52, -9.81, -9.1, -8.28, -6.73, -5.19, -2.98, -1.11, -0.05
+      ],
+      "lower": [
+        -0.05, 1.01, 2.86, 5.17, 6.71, 8.26, 9.11, 9.83, 10.54, 10.89, 11.08, 11.27, 11.46, 11.27,
+        11.08, 10.89, 10.54, 9.84, 9.13, 8.3, 6.76, 5.21, 2.96, 1.04, -0.05
+      ],
+      "top": [
+        -11.53, -12.03, -12.93, -13.97, -15.64, -16.8, -17.95, -19.07, -19.68, -20.02, -20.36, -20.7,
+        -21.04, -20.7, -20.36, -20.02, -19.68, -19.08, -17.96, -16.81, -15.65, -13.98, -12.94,
+        -12.05, -11.54
+      ],
+      "bottom": [
+        11.55, 12.06, 12.95, 14, 15.65, 16.78, 17.91, 19, 19.61, 19.94, 20.28, 20.62, 20.96, 20.62,
+        20.29, 19.95, 19.61, 19.01, 17.92, 16.79, 15.66, 14.01, 12.97, 12.08, 11.57
+      ],
+      "grow": 1.5,
+      "lash": 12,
+      "lowerLash": 0,
+      "shift": [7.06, 4.24],
+      "rect": [378, 328, 104, 44],
+      "colors": { "skin": "#f3b694", "white": "#fbfbfb", "iris": "#292826", "lash": "#373535" },
+      "occluded": 0.07
+    },
+    "imageRight": {
+      "id": "eyeL",
+      "center": [566.86, 350.74],
+      "angle": 0,
+      "u": [
+        -33.73, -32.89, -31.41, -29.51, -25.29, -21.06, -16.84, -12.62, -8.4, -4.17, 0.05, 4.27,
+        8.49, 12.71, 16.94, 21.16, 25.38, 29.6, 31.5, 32.98, 33.83
+      ],
+      "upper": [
+        -0.05, -1.38, -3.72, -5.52, -7.47, -8.91, -9.8, -10.7, -10.99, -11.27, -11.54, -11.26,
+        -10.99, -10.67, -9.78, -8.88, -7.42, -5.46, -3.58, -1.33, -0.05
+      ],
+      "lower": [
+        -0.05, 1.32, 3.73, 5.54, 7.5, 8.93, 9.83, 10.72, 10.98, 11.23, 11.46, 11.22, 10.98, 10.69,
+        9.8, 8.91, 7.44, 5.49, 3.57, 1.27, -0.05
+      ],
+      "top": [
+        -12.95, -13.53, -14.41, -15.34, -16.71, -18.08, -19.37, -19.84, -20.24, -20.64, -21.04,
+        -20.63, -20.23, -19.83, -19.35, -18.05, -16.69, -15.33, -14.39, -13.51, -12.91
+      ],
+      "bottom": [
+        12.97, 13.56, 14.43, 15.35, 16.69, 18.03, 19.29, 19.76, 20.16, 20.56, 20.96, 20.56, 20.16,
+        19.76, 19.27, 18, 16.67, 15.35, 14.41, 13.54, 12.94
+      ],
+      "grow": 1.5,
+      "lash": 12,
+      "lowerLash": 1,
+      "shift": [5.44, 3.26],
+      "rect": [525, 329, 83, 43],
+      "colors": { "skin": "#f3b694", "white": "#fafafa", "iris": "#2d2b2a", "lash": "#353333" },
+      "occluded": 0.06
+    }
+  },
+  "mouth": {
+    "version": 1,
+    "line": 4.5,
+    "colors": { "line": "#532e26", "inside": "#3f121a", "tongue": "#7b3e3c" }
+  },
+  "brows": { "version": 1 },
+  "sprites": {
+    "version": 1,
+    "sprites": [
+      {
+        "id": "eyes_closed",
+        "group": "eyes",
+        "layers": [
+          { "id": "sprite_eyes_closed_imageLeft", "key": "imageLeft", "rect": [366, 322, 122, 57] },
+          {
+            "id": "sprite_eyes_closed_imageRight",
+            "key": "imageRight",
+            "rect": [516, 323, 102, 55]
+          }
+        ],
+        "drawingHash": "d6c2564033960c11",
+        "inputsHash": "5636dac58801e9dd",
+        "layersHash": "16975a41c418d20c",
+        "check": {
+          "outsideDiff": 0.003,
+          "insideChanged": 0.5993,
+          "badShare": 0,
+          "nearDiff": 0.389,
+          "tolerance": 2
+        }
+      },
+      {
+        "id": "mouth_a",
+        "group": "mouth",
+        "layers": [
+          { "id": "sprite_mouth_a_mouth", "key": "mouth", "rect": [423, 487, 158, 66] }
+        ],
+        "drawingHash": "872aded78c6c051b",
+        "inputsHash": "fec68f51e34ec948",
+        "layersHash": "16975a41c418d20c",
+        "check": {
+          "outsideDiff": 0.014,
+          "insideChanged": 0.9835,
+          "badShare": 0,
+          "nearDiff": 3.582,
+          "tolerance": 2
+        }
+      }
+    ],
+    "rejected": []
+  }
+}

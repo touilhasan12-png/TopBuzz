@@ -1,0 +1,33 @@
+name: Render 09 Rev2D AI Avatar + Kinetic Stickers 20s
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render_rev2d_ai_avatar_20s:
+    name: Render 09_Rev2D_AI_Avatar_Kinetic_20s (1080x1920 @ 30fps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Dependencies & Clone RevStudio/Rev2D
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p /tmp/gh_engines /tmp/out_video
+          ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/node_modules
+          git clone --depth 1 https://github.com/RevStudio/Rev2D.git /tmp/gh_engines/rev2d
+      - name: Render All 600 Full-HD Frames (Zero Sora/Kling — Pure Rev2D Live2D Mesh + AI Art + Kinetic Stickers)
+        env:
+          REV2D_ROOT: /tmp/gh_engines/rev2d
+          OUT_MP4: /tmp/out_video/09_Rev2D_AI_Avatar_Kinetic_20s.mp4
+        run: |
+          npx tsx benchmarks/09_ai_puppet_20s/build_and_render.ts
+          ls -lh /tmp/out_video/09_Rev2D_AI_Avatar_Kinetic_20s.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-09-Rev2D-AI-Avatar-20s
+          path: /tmp/out_video/09_Rev2D_AI_Avatar_Kinetic_20s.mp4
+          retention-days: 30

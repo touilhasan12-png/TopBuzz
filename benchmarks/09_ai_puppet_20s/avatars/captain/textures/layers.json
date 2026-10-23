@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "inputsHash": "a9eb9801f4f018dd",
+  "image": { "width": 700, "height": 896 },
+  "layers": [
+    { "id": "base", "file": "textures/base.png", "rect": [0, 0, 700, 896] },
+    { "id": "eyeR_ball", "file": "textures/eyeR_ball.png", "rect": [251, 274, 91, 47] },
+    { "id": "eyeR_lower", "file": "textures/eyeR_lower.png", "rect": [258, 272, 85, 50] },
+    { "id": "eyeR_lowerRim", "file": "textures/eyeR_lowerRim.png", "rect": [258, 272, 85, 50] },
+    { "id": "eyeR_crease", "file": "textures/eyeR_crease.png", "rect": [258, 272, 85, 50] },
+    { "id": "eyeR_upper", "file": "textures/eyeR_upper.png", "rect": [258, 272, 85, 50] },
+    { "id": "eyeR_upperRim", "file": "textures/eyeR_upperRim.png", "rect": [258, 272, 85, 50] },
+    { "id": "eyeR_front", "file": "textures/eyeR_front.png", "rect": [279, 273, 62, 39] },
+    { "id": "eyeL_ball", "file": "textures/eyeL_ball.png", "rect": [357, 274, 91, 47] },
+    { "id": "eyeL_lower", "file": "textures/eyeL_lower.png", "rect": [357, 272, 84, 50] },
+    { "id": "eyeL_lowerRim", "file": "textures/eyeL_lowerRim.png", "rect": [357, 272, 84, 50] },
+    { "id": "eyeL_crease", "file": "textures/eyeL_crease.png", "rect": [357, 272, 84, 50] },
+    { "id": "eyeL_upper", "file": "textures/eyeL_upper.png", "rect": [357, 272, 84, 50] },
+    { "id": "eyeL_upperRim", "file": "textures/eyeL_upperRim.png", "rect": [357, 272, 84, 50] },
+    { "id": "eyeL_front", "file": "textures/eyeL_front.png", "rect": [385, 273, 35, 10] },
+    { "id": "mouth", "file": "textures/mouth.png", "rect": [297, 378, 106, 52] },
+    {
+      "id": "sprite_eyes_closed_imageLeft",
+      "file": "textures/sprite_eyes_closed_imageLeft.png",
+      "rect": [243, 267, 108, 61]
+    },
+    {
+      "id": "sprite_eyes_closed_imageRight",
+      "file": "textures/sprite_eyes_closed_imageRight.png",
+      "rect": [348, 267, 108, 61]
+    },
+    {
+      "id": "sprite_mouth_a_mouth",
+      "file": "textures/sprite_mouth_a_mouth.png",
+      "rect": [295, 376, 110, 56]
+    }
+  ],
+  "variants": ["eyes_closed", "mouth_a"],
+  "eyes": {
+    "version": 1,
+    "imageLeft": {
+      "id": "eyeR",
+      "center": [296.82, 297.63],
+      "angle": 0,
+      "u": [
+        -36.24, -35.34, -33.75, -31.72, -27.19, -22.66, -18.14, -13.61, -9.08, -4.56, -0.03, 4.5,
+        9.02, 13.55, 18.08, 22.6, 27.13, 31.66, 33.7, 35.28, 36.19
+      ],
+      "upper": [
+        -0.03, -1.64, -4.46, -6.6, -9.04, -10.8, -11.89, -12.98, -13.35, -13.69, -14.04, -13.7,
+        -13.35, -12.99, -11.9, -10.8, -9.07, -6.65, -4.63, -1.7, -0.03
+      ],
+      "lower": [
+        -0.03, 1.58, 4.39, 6.54, 9.05, 10.83, 11.92, 13.02, 13.35, 13.66, 13.97, 13.66, 13.35, 13.02,
+        11.93, 10.84, 9.07, 6.6, 4.56, 1.64, -0.03
+      ],
+      "top": [
+        -14.11, -14.79, -15.85, -17.04, -18.57, -20.1, -21.56, -22.16, -22.62, -23.07, -23.53,
+        -23.08, -22.62, -22.16, -21.57, -20.11, -18.58, -17.05, -15.86, -14.83, -14.14
+      ],
+      "bottom": [
+        14.04, 14.73, 15.78, 16.97, 18.5, 20.03, 21.49, 22.09, 22.55, 23.01, 23.47, 23.01, 22.55,
+        22.09, 21.5, 20.04, 18.51, 16.98, 15.8, 14.76, 14.08
+      ],
+      "grow": 1.5,
+      "lash": 7,
+      "lowerLash": 7,
+      "shift": [5.87, 3.52],
+      "rect": [258, 272, 85, 50],
+      "colors": { "skin": "#f8b18a", "white": "#fbfafb", "iris": "#1a1a1b", "lash": "#201d1d" },
+      "occluded": 0.02
+    },
+    "imageRight": {
+      "id": "eyeL",
+      "center": [402.2, 297.63],
+      "angle": 0,
+      "u": [
+        -36.21, -35.3, -33.72, -31.68, -27.15, -22.63, -18.1, -13.58, -9.05, -4.53, 0, 4.53, 9.05,
+        13.58, 18.1, 22.63, 27.15, 31.68, 33.72, 35.3, 36.21
+      ],
+      "upper": [
+        -0.03, -1.7, -4.63, -6.65, -9.06, -10.8, -11.89, -12.99, -13.35, -13.69, -14.04, -13.69,
+        -13.35, -12.99, -11.89, -10.8, -9.06, -6.65, -4.63, -1.7, -0.03
+      ],
+      "lower": [
+        -0.03, 1.64, 4.56, 6.6, 9.07, 10.84, 11.93, 13.02, 13.35, 13.66, 13.97, 13.66, 13.35, 13.02,
+        11.93, 10.84, 9.07, 6.6, 4.56, 1.64, -0.03
+      ],
+      "top": [
+        -14.12, -14.81, -15.85, -17.05, -18.58, -20.1, -21.57, -22.16, -22.62, -23.08, -23.53,
+        -23.08, -22.62, -22.16, -21.57, -20.1, -18.58, -17.05, -15.86, -14.83, -14.14
+      ],
+      "bottom": [
+        14.05, 14.74, 15.79, 16.98, 18.51, 20.04, 21.5, 22.09, 22.55, 23.01, 23.47, 23.01, 22.55,
+        22.09, 21.5, 20.04, 18.51, 16.98, 15.8, 14.76, 14.08
+      ],
+      "grow": 1.5,
+      "lash": 7,
+      "lowerLash": 6,
+      "shift": [5.87, 3.52],
+      "rect": [357, 272, 84, 50],
+      "colors": { "skin": "#f6b18a", "white": "#fbfbfb", "iris": "#181718", "lash": "#23201f" },
+      "occluded": 0.01
+    }
+  },
+  "mouth": {
+    "version": 1,
+    "line": 3,
+    "colors": { "line": "#090100", "inside": "#220000", "tongue": "#7a3e3e" }
+  },
+  "brows": { "version": 1 },
+  "sprites": {
+    "version": 1,
+    "sprites": [
+      {
+        "id": "eyes_closed",
+        "group": "eyes",
+        "layers": [
+          { "id": "sprite_eyes_closed_imageLeft", "key": "imageLeft", "rect": [243, 267, 108, 61] },
+          {
+            "id": "sprite_eyes_closed_imageRight",
+            "key": "imageRight",
+            "rect": [348, 267, 108, 61]
+          }
+        ],
+        "drawingHash": "8f4f81778531573c",
+        "inputsHash": "bba1802147bac026",
+        "layersHash": "a9eb9801f4f018dd",
+        "check": {
+          "outsideDiff": 0.003,
+          "insideChanged": 0.4778,
+          "badShare": 0,
+          "nearDiff": 0.337,
+          "tolerance": 2
+        }
+      },
+      {
+        "id": "mouth_a",
+        "group": "mouth",
+        "layers": [
+          { "id": "sprite_mouth_a_mouth", "key": "mouth", "rect": [295, 376, 110, 56] }
+        ],
+        "drawingHash": "13254b6cfe9a7e19",
+        "inputsHash": "aa3680220d015ae8",
+        "layersHash": "a9eb9801f4f018dd",
+        "check": {
+          "outsideDiff": 0.006,
+          "insideChanged": 0.8898,
+          "badShare": 0,
+          "nearDiff": 1.653,
+          "tolerance": 2
+        }
+      }
+    ],
+    "rejected": []
+  }
+}
