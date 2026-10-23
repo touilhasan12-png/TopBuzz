@@ -1,0 +1,135 @@
+name: 6-Engine 2D Rigging 20s Benchmark
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render_engines:
+    name: Render ${{ matrix.label }} (20.00s @ 1080x1920)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: 01_rev2d
+            label: 01_Rev2D_Live2DMesh
+            out_file: 01_Rev2D_Live2DMesh_20s.mp4
+          - id: 02_studio25d
+            label: 02_Studio25D_Parallax
+            out_file: 02_Studio25D_Parallax_20s.mp4
+          - id: 03_synfig
+            label: 03_SynfigStudio_CppVector
+            out_file: 03_SynfigStudio_CppVector_20s.mp4
+          - id: 04_claude_animation
+            label: 04_ClaudeAnimationSkill_HandDrawn
+            out_file: 04_ClaudeAnimationSkill_HandDrawn_20s.mp4
+          - id: 05_anidoodle
+            label: 05_Anidoodle_VolumetricCel
+            out_file: 05_Anidoodle_VolumetricCel_20s.mp4
+
+    steps:
+      - name: Checkout TopBuzz Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python 3.12 (for C++ Synfig Studio 1.5.5)
+        if: matrix.id == '03_synfig'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Shared Node Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Clone Upstream Open-Source Animation Engine & Render 600 Frames (20.00s)
+        env:
+          OUT_MP4: /tmp/out_video/${{ matrix.out_file }}
+        run: |
+          mkdir -p /tmp/gh_engines /tmp/out_video
+          ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/node_modules
+
+          case "${{ matrix.id }}" in
+            01_rev2d)
+              git clone --depth 1 https://github.com/RevStudio/Rev2D.git /tmp/gh_engines/rev2d
+              npx tsx benchmarks/01_rev2d/build_and_render.ts
+              ;;
+            02_studio25d)
+              git clone --depth 1 https://github.com/WageFolabessy/ai-agent-animation-studio.git /tmp/gh_engines/studio25d
+              npx tsx benchmarks/02_studio25d/build_and_render.ts
+              ;;
+            03_synfig)
+              WORKERS=4 python3 benchmarks/03_synfig/build_and_render.py
+              ;;
+            04_claude_animation)
+              git clone --depth 1 https://github.com/buildwithhanif/claude-animation-skill.git /tmp/gh_engines/claude_anim
+              ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/claude_anim/plugins/claude-animation/skills/claude-animation/node_modules
+              node benchmarks/04_claude_animation/film_20s.mjs
+              ;;
+            05_anidoodle)
+              git clone --depth 1 https://github.com/alexgreensh/anidoodle.git /tmp/gh_engines/anidoodle
+              ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/anidoodle/skills/anidoodle/engine/node_modules
+              npx tsx benchmarks/05_anidoodle/build_and_render.ts
+              ;;
+          esac
+
+          ls -lh "$OUT_MP4"
+
+      - name: Upload Rendered 20s Master Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ matrix.id }}
+          path: /tmp/out_video/${{ matrix.out_file }}
+          retention-days: 14
+
+  compare_and_verify:
+    name: Assemble 6-Engine Side-by-Side Comparison & Audit
+    needs: render_engines
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout TopBuzz Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Shared Node Dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Download All 5 Rendered Engine Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: video-*
+          path: /tmp/all_videos
+          merge-multiple: true
+
+      - name: Extract 20.00s Slice of Episode 01 ReelMimic Baseline (v1.0.0) & Build 6-Engine Suite
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FFMPEG_BIN=$(node -e 'import("ffmpeg-static").then(m => console.log(m.default))')
+          gh release download v1.0.0 --pattern "TopBuzz_EP01_Willie_Dee_1080p_Master.mp4" --dir /tmp/v1_base
+          "$FFMPEG_BIN" -y -ss 0 -t 20.000 \
+            -i /tmp/v1_base/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4 \
+            -c:v libx264 -preset fast -crf 18 -r 30 -pix_fmt yuv420p \
+            -c:a aac -b:a 192k \
+            /tmp/all_videos/00_ReelMimic_Baseline_20s.mp4
+
+          ls -lh /tmp/all_videos
+          node benchmarks/shared/build_comparison_master.mjs --dir /tmp/all_videos
+          ls -lh /tmp/all_videos
+
+      - name: Upload Complete 6-Engine Benchmark Suite Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-6-Engine-Benchmark-Suite
+          path: |
+            /tmp/all_videos/*.mp4
+            /tmp/all_videos/6_Engine_Contact_Sheet.png
+            /tmp/all_videos/Benchmark_QA_Report.json
+          retention-days: 30
