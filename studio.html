@@ -6,8 +6,15 @@
 <style>
   @font-face {
     font-family: 'Montserrat';
-    src: local('Montserrat ExtraBold'), local('Montserrat-ExtraBold'), local('Montserrat Black'), local('Montserrat-Black'), local('Montserrat');
-    font-weight: 800 900;
+    src: url('assets/fonts/Montserrat-ExtraBold.otf') format('opentype'),
+         local('Montserrat ExtraBold'), local('Montserrat-ExtraBold');
+    font-weight: 800;
+  }
+  @font-face {
+    font-family: 'Montserrat';
+    src: url('assets/fonts/Montserrat-Black.otf') format('opentype'),
+         local('Montserrat Black'), local('Montserrat-Black');
+    font-weight: 900;
   }
   html, body { margin: 0; padding: 0; background: #12141a; color: #eee; font: 13px system-ui, sans-serif; overflow: hidden; }
   main { padding: 0; display: block; }

@@ -7,8 +7,6 @@ jobs:
   render-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout TopBuzz Engine
         uses: actions/checkout@v4
@@ -25,13 +23,10 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Fonts & Python Optical-Flow Dependencies
+      - name: Install NPM & Python Optical-Flow Dependencies (Zero APT Lock)
         run: |
-          sudo apt-get update -yq
-          sudo apt-get install -yq --no-install-recommends ffmpeg fonts-montserrat fonts-dejavu-core
-          fc-cache -f
           python -m pip install --upgrade pip
-          python -m pip install opencv-python-headless numpy scipy matplotlib librosa soundfile
+          python -m pip install -r requirements.txt
           npm ci
 
       - name: Render 15-Frame Full-HD Storyboard Contact Sheet
