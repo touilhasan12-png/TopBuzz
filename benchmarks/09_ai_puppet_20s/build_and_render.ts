@@ -378,7 +378,7 @@ async function runWorkerRange(startFrame: number, endFrame: number) {
     const loaded = await loadModelFile(file);
     if (!loaded.model) throw new Error(`Failed loading Rev2D avatar ${name}`);
     const rig = new Rig(loaded.model);
-    const offCanvas = createCanvas(loaded.model.canvas.width, loaded.model.canvas.height);
+    const offCanvas = createCanvas(64, 64);
     const offCtx = offCanvas.getContext("2d");
     return { loaded, rig, offCanvas, offCtx };
   }
