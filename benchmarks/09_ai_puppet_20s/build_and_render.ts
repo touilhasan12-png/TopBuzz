@@ -969,10 +969,9 @@ async function main() {
     const e = Math.min(TOTAL_FRAMES, s + CHUNK);
     console.log(`[Rev2D-AI-Avatar] Rendering frames ${s}..${e - 1} / ${TOTAL_FRAMES}...`);
     await new Promise<void>((resolve, reject) => {
-      const tsxBin = path.join(REPO_ROOT, "node_modules/.bin/tsx");
       const child = spawn(
-        tsxBin,
-        [fileURLToPath(import.meta.url)],
+        process.execPath,
+        ["--import=tsx", fileURLToPath(import.meta.url)],
         {
           env: { ...process.env, WORKER_RANGE: `${s}:${e}` },
           stdio: ["ignore", "inherit", "inherit", "pipe"],
