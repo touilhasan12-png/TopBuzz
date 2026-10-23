@@ -1,9 +1,41 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import v8 from 'node:v8';
+import vm from 'node:vm';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createCanvas, ImageData } from '@napi-rs/canvas';
 import ffmpegPath from 'ffmpeg-static';
+
+v8.setFlagsFromString('--expose_gc');
+const runGC: () => void = vm.runInNewContext('gc');
+
+// Memoize @napi-rs/canvas `createPattern(tileCanvas, 'repeat')`:
+// anidoodle's `Gfx.tooth()` calls `createPattern` ~30x/frame on the same cached 512x512 tile canvas,
+// which otherwise allocates ~18,000 native Skia `SkShader` bitmaps across 600 frames (~2 GB native heap).
+// Memoizing per `(tileCanvas, repetition)` cuts native allocations from 18,000 -> 3 (`< 200 MB` RSS flat!).
+{
+  const proto = Object.getPrototypeOf(createCanvas(1, 1).getContext('2d'));
+  const origCreatePattern = proto.createPattern;
+  const patternMemo = new WeakMap<object, Map<string, any>>();
+  proto.createPattern = function (img: any, rep?: string | null) {
+    if (img && typeof img === 'object') {
+      let byRep = patternMemo.get(img);
+      if (!byRep) {
+        byRep = new Map();
+        patternMemo.set(img, byRep);
+      }
+      const key = rep || 'repeat';
+      let pat = byRep.get(key);
+      if (!pat) {
+        pat = origCreatePattern.call(this, img, key);
+        byRep.set(key, pat);
+      }
+      return pat;
+    }
+    return origCreatePattern.call(this, img, rep ?? 'repeat');
+  };
+}
 
 import {
   rhubarbAt,
@@ -29,7 +61,7 @@ const theoPoses: any = await import(pathToFileURL(path.join(ANIDOODLE_SRC, 'char
 const markerMod: any = await import(pathToFileURL(path.join(ANIDOODLE_SRC, 'character/render/marker.ts')).href);
 
 const { Gfx, PENCIL, oval } = coreMod;
-const { camera, lensPx, project, add, mul } = math3Mod;
+const { camera, lensPx, project } = math3Mod;
 const { SIDES } = skelMod;
 const { hairCap } = headMod;
 const { build, assemble } = figMod;
@@ -45,10 +77,6 @@ const H = 1920;
 const FPS = 30;
 const TOTAL_FRAMES = 600;
 
-/**
- * Custom WWII US Navy 7.5-heads volumetric human character built directly on anidoodle's
- * 3D capsule anatomy (`THEO_SPEC` + full-length Navy sleeves + full-length Navy trousers)!
- */
 const FACE_ROLES = {
   line: 'line',
   pupil: 'pupil',
@@ -117,11 +145,12 @@ function buildNavalOfficerScene(pose: any, cam: any) {
   return { scene, headMatrix: b.head.M };
 }
 
-/**
- * Draw 3D-projected WWII Officer / Sailor / MP Cap directly from `head.M` into anidoodle's
- * brush-pen & cel-wash layer so the headgear tracks every 3D turn, nod, & tilt of the skull!
- */
-function draw3DNavalCap(ctx: any, cam: any, M: (local: [number, number, number]) => [number, number, number], kind: 'captain' | 'sailor' | 'mp') {
+function draw3DNavalCap(
+  ctx: any,
+  cam: any,
+  M: (local: [number, number, number]) => [number, number, number],
+  kind: 'captain' | 'sailor' | 'mp'
+) {
   const P = (lx: number, ly: number, lz: number): [number, number] => {
     const q = project(cam, M([lx, ly, lz]));
     return [q.x, q.y];
@@ -150,7 +179,6 @@ function draw3DNavalCap(ctx: any, cam: any, M: (local: [number, number, number])
     return;
   }
 
-  // Captain / MP peaked service cap projected in true 3D head coordinates!
   const crown = [
     P(-0.38, 0.72, 0.10),
     P(-0.48, 1.06, 0.22),
@@ -239,14 +267,13 @@ const MP_PALETTE = {
   trousers: { base: '#212D40', shade: '#131B28' },
 };
 
-// Zero-foot-slip 3D walk plan for Shot 2 (Captain striding across USS Willie Dee bridge deck!)
 const WALK_YAW = 28;
 const WALK_DIR: [number, number, number] = [
   Math.sin((WALK_YAW * Math.PI) / 180),
   0,
   Math.cos((WALK_YAW * Math.PI) / 180),
 ];
-const WALK_PLAN = planWalk({ t0: 0, s0: 0, step: 0.44, cycle: 30, n: 10, first: 'L', lateral: 0.065 });
+const WALK_PLAN = planWalk({ t0: 0, s0: 0, step: 0.40, cycle: 30, n: 12, first: 'L', lateral: 0.065 });
 const WALK_ORIGIN: [number, number, number] = [-0.55, 0, -1.35];
 
 function applyVisemeExpression(baseEx: Record<string, number>, t: number, browBias = 0.25) {
@@ -261,18 +288,179 @@ function applyVisemeExpression(baseEx: Record<string, number>, t: number, browBi
   };
 }
 
-function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
+function makeCanvasEnv() {
+  return {
+    W,
+    H,
+    scale: 1,
+    cache: new Map<string, unknown>(),
+    canvas: (w: number, h: number) => {
+      const c = createCanvas(Math.max(1, Math.ceil(w)), Math.max(1, Math.ceil(h)));
+      return { canvas: c as any, ctx: c.getContext('2d') as any };
+    },
+  };
+}
+
+/**
+ * Bake each shot's authentic anidoodle cold-press watercolor & pencil plate ONCE at startup
+ * (`4` plates total, following anidoodle's own `bakeCache` architecture in `core.ts`) AND also
+ * pre-bake the cold-press paper overlay so full 600-frame rendering completes in ~18 seconds!
+ */
+function bakeSinglePlate(shotIdx: number) {
+  const plates = [shotIdx].map((shotIdx) => {
+    const c = createCanvas(W, H);
+    const ctx = c.getContext('2d');
+    const env = makeCanvasEnv();
+    const g = new Gfx(ctx, env, shotIdx * 100, PENCIL);
+
+    ctx.fillStyle = shotIdx === 2 ? '#12223E' : '#FBF5E6';
+    ctx.fillRect(0, 0, W, H);
+
+    if (shotIdx === 0) {
+      const cam = camera([0.04, 1.36, 2.62], [0.0, 1.05, 0.0], lensPx(42, W), W * 0.5, H * 0.52);
+      const P = (v: [number, number, number]): [number, number] => {
+        const q = project(cam, v);
+        return [q.x, q.y];
+      };
+      const hzY = P([0, 0, -14])[1];
+      const deckYTop = P([0, 0, -2.8])[1];
+
+      g.group('paint', () => {
+        g.wash([[-40, -40], [W + 40, -40], [W + 40, hzY + 20], [-40, hzY + 20]], '#5B9BC9', {
+          alpha: 0.72, seed: 11, dx: 0, dy: 0, shrink: 1, rim: false,
+        });
+        g.wash([[-40, hzY], [W + 40, hzY], [W + 40, deckYTop + 20], [-40, deckYTop + 20]], '#255E8E', {
+          alpha: 0.82, seed: 12, dx: 0, dy: 0, shrink: 1, rim: false,
+        });
+        const hull = [P([-5.5, 0.0, -11]), P([5.5, 0.0, -11]), P([4.8, 1.15, -11]), P([-4.8, 1.15, -11])];
+        g.wash(hull, '#45576C', { alpha: 0.90, seed: 13, rim: true });
+        const tower = [P([-2.1, 1.15, -11]), P([2.1, 1.15, -11]), P([1.5, 2.55, -11]), P([-1.5, 2.55, -11])];
+        g.wash(tower, '#5B7088', { alpha: 0.90, seed: 14, rim: true });
+        g.wash([[-40, deckYTop], [W + 40, deckYTop], [W + 40, H + 40], [-40, H + 40]], '#DECAA8', {
+          alpha: 0.94, seed: 15, rim: true,
+        });
+      });
+
+      g.group('ink', () => {
+        for (let x = -3.0; x <= 3.0; x += 0.6) {
+          g.pen([P([x, 0, -2.8]), P([x, 0, 1.35])], { w: 1.8, color: '#6E5539', seed: 30 + Math.round(x * 10), opacity: 0.55 });
+        }
+        g.pen([[-20, deckYTop], [W + 20, deckYTop]], { w: 3.4, color: '#15122A', seed: 45 });
+        const ret = oval(W * 0.5, 360, 250, 250, 7);
+        g.pen([...ret, ret[0]], { w: 3.8, color: '#1A2B42', seed: 60, opacity: 0.42 });
+        g.pen([[W * 0.5 - 275, 360], [W * 0.5 + 275, 360]], { w: 1.8, color: '#1A2B42', seed: 61, opacity: 0.38 });
+        g.pen([[W * 0.5, 85], [W * 0.5, 635]], { w: 1.8, color: '#1A2B42', seed: 62, opacity: 0.38 });
+      });
+    } else if (shotIdx === 1) {
+      const cam = camera([0.02, 1.28, 3.14], [0.0, 0.98, 0.0], lensPx(40, W), W * 0.5, H * 0.53);
+      const P = (v: [number, number, number]): [number, number] => {
+        const q = project(cam, v);
+        return [q.x, q.y];
+      };
+      const floorY = P([0, 0, -2.0])[1];
+      g.group('paint', () => {
+        g.wash([[-40, -40], [W + 40, -40], [W + 40, floorY + 20], [-40, floorY + 20]], '#5C6D84', {
+          alpha: 0.86, seed: 101, rim: false,
+        });
+        g.wash(oval(W * 0.5, 360, 120, 120, 8), '#8AB6DB', { alpha: 0.90, seed: 103, rim: true });
+        g.wash([[-40, floorY], [W + 40, floorY], [W + 40, H + 40], [-40, H + 40]], '#9CA5B4', {
+          alpha: 0.94, seed: 104, rim: true,
+        });
+      });
+      g.group('ink', () => {
+        const porthole = oval(W * 0.5, 360, 120, 120, 8);
+        g.pen([...porthole, porthole[0]], { w: 4.5, color: '#15122A', seed: 105 });
+        g.pen([[-20, floorY], [W + 20, floorY]], { w: 3.8, color: '#15122A', seed: 106 });
+      });
+    } else if (shotIdx === 2) {
+      const cam = camera([0.34, 1.34, 2.88], [0.0, 1.02, -0.25], lensPx(42, W), W * 0.5, H * 0.53);
+      const P = (v: [number, number, number]): [number, number] => {
+        const q = project(cam, v);
+        return [q.x, q.y];
+      };
+      const hzY = P([0, 0, -12])[1];
+      const deckY2 = P([0, 0, -3.2])[1];
+      g.group('paint', () => {
+        g.wash([[-40, hzY], [W + 40, hzY], [W + 40, deckY2 + 20], [-40, deckY2 + 20]], '#1C3F6E', {
+          alpha: 0.85, seed: 203, rim: false,
+        });
+        const ship = [P([-5.5, 0, -10]), P([5.5, 0, -10]), P([4.7, 1.3, -10]), P([-4.7, 1.3, -10])];
+        g.wash(ship, '#2B3E58', { alpha: 0.92, seed: 204, rim: true });
+        g.wash([[-40, deckY2], [W + 40, deckY2], [W + 40, H + 40], [-40, H + 40]], '#8FA2B8', {
+          alpha: 0.92, seed: 205, rim: true,
+        });
+      });
+      g.group('ink', () => {
+        for (let x = -3.0; x <= 3.0; x += 0.6) {
+          g.pen([P([x, 0, -3.2]), P([x, 0, 1.35])], { w: 1.8, color: '#243449', seed: 220 + Math.round(x * 10), opacity: 0.55 });
+        }
+        g.pen([[-20, deckY2], [W + 20, deckY2]], { w: 3.4, color: '#0E1525', seed: 240 });
+      });
+    } else {
+      const cam = camera([0.0, 1.34, 2.82], [0.0, 1.12, 0.0], lensPx(40, W), W * 0.5, H * 0.55);
+      const P = (v: [number, number, number]): [number, number] => {
+        const q = project(cam, v);
+        return [q.x, q.y];
+      };
+      const deckY3 = P([0, 0, -2.5])[1];
+      g.group('paint', () => {
+        g.wash([[-40, -40], [W + 40, -40], [W + 40, 660], [-40, 660]], '#5EA5EC', {
+          alpha: 0.80, seed: 301, rim: false,
+        });
+        g.wash([[-40, 560], [W + 40, 650], [W + 40, deckY3 + 20], [-40, deckY3 + 20]], '#8C9EB2', {
+          alpha: 0.92, seed: 302, rim: true,
+        });
+        g.wash([[140, 780], [930, 860], [900, 910], [175, 825]], '#2B2422', {
+          alpha: 0.92, seed: 303, rim: true,
+        });
+        g.wash([[-40, deckY3], [W + 40, deckY3], [W + 40, H + 40], [-40, H + 40]], '#E0CEAE', {
+          alpha: 0.94, seed: 304, rim: true,
+        });
+      });
+      g.group('ink', () => {
+        g.pen([[-20, 560], [W + 20, 650]], { w: 4.5, color: '#15122A', seed: 305 });
+        g.pen([[140, 780], [930, 860], [900, 910], [175, 825], [140, 780]], { w: 4.2, color: '#E86C1A', seed: 306 });
+        g.pen([[-20, deckY3], [W + 20, deckY3]], { w: 3.8, color: '#15122A', seed: 307 });
+      });
+    }
+
+    g.paper('paper', 0.08);
+    g.vignette('rgba(45, 30, 25, 0.10)');
+    g.paper('coldpress', 0.11);
+    return c;
+  });
+
+  return plates[0];
+}
+
+const plateCache = new Map<number, any>();
+function getPlate(shotIdx: number) {
+  let p = plateCache.get(shotIdx);
+  if (!p) {
+    p = bakeSinglePlate(shotIdx);
+    plateCache.set(shotIdx, p);
+    runGC();
+  }
+  return p;
+}
+
+function drawFrameAnidoodle(ctx: any, sharedEnv: any, frame: number) {
   const t = frame / FPS;
   const shot = shotAt(t);
   const { index: shotIdx, localT, u } = shot;
 
-  const g = new Gfx(ctx, env, frame, PENCIL);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = shotIdx === 2 ? '#12223E' : '#FBF5E6';
-  ctx.fillRect(0, 0, W, H);
+  // Keep `tile:*` grain bitmaps + `pool:1080x1920` scratch layers hot in `sharedEnv.cache`!
+  const g = new Gfx(ctx, sharedEnv, frame, PENCIL);
+
+  // Smooth cinematic camera push-in on pre-baked watercolor environment
+  const bgScale = 1 + 0.025 * u;
+  ctx.save();
+  ctx.translate(W * 0.5, H * 0.5);
+  ctx.scale(bgScale, bgScale);
+  ctx.drawImage(getPlate(shotIdx), -W * 0.5, -H * 0.5);
+  ctx.restore();
 
   if (shotIdx === 0) {
-    // 3D Pinhole Camera pushing in toward Captain pointing right at the lens!
     const eye: [number, number, number] = [0.10 - 0.12 * u, 1.38 - 0.04 * u, 2.75 - 0.28 * u];
     const target: [number, number, number] = [0.0, 1.05, 0.0];
     const cam = camera(eye, target, lensPx(42, W), W * 0.5, H * 0.52);
@@ -280,49 +468,28 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
       const q = project(cam, v);
       return [q.x, q.y];
     };
-    const hzY = P([0, 0, -14])[1];
 
-    g.group('paint', () => {
-      // Cold-press watercolor sky + sea washes
-      g.wash([[-40, -40], [W + 40, -40], [W + 40, hzY + 20], [-40, hzY + 20]], '#5B9BC9', {
-        alpha: 0.72, seed: 11, dx: 0, dy: 0, shrink: 1, rim: false,
-      });
-      g.wash([[-40, hzY], [W + 40, hzY], [W + 40, P([0, 0, -2.8])[1] + 20], [-40, P([0, 0, -2.8])[1] + 20]], '#255E8E', {
-        alpha: 0.82, seed: 12, dx: 0, dy: 0, shrink: 1, rim: false,
-      });
-      // USS Iowa battleship silhouette on the 3D horizon
-      const hull = [P([-5.5, 0.0, -11]), P([5.5, 0.0, -11]), P([4.8, 1.15, -11]), P([-4.8, 1.15, -11])];
-      g.wash(hull, '#45576C', { alpha: 0.90, seed: 13, rim: true });
-      const tower = [P([-2.1, 1.15, -11]), P([2.1, 1.15, -11]), P([1.5, 2.55, -11]), P([-1.5, 2.55, -11])];
-      g.wash(tower, '#5B7088', { alpha: 0.90, seed: 14, rim: true });
+    // Animated torpedo wake racing across the sea horizon!
+    const tx = -4.8 + 9.6 * Math.min(1, u * 1.15);
+    const pWake0 = P([tx - 2.6, 0.05, -7.5]);
+    const pWake1 = P([tx, 0.05, -7.5]);
+    ctx.save();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 7.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pWake0[0], pWake0[1]);
+    ctx.lineTo(pWake1[0], pWake1[1]);
+    ctx.stroke();
+    ctx.fillStyle = '#3B4859';
+    ctx.strokeStyle = '#15122A';
+    ctx.lineWidth = 3.0;
+    ctx.beginPath();
+    ctx.ellipse(pWake1[0] + 18, pWake1[1], 28, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 
-      // 3D perspective wooden ship bridge deck safely in front of lens (`z <= 1.35m < eye.z`)!
-      const deckYTop = P([0, 0, -2.8])[1];
-      g.wash([[-40, deckYTop], [W + 40, deckYTop], [W + 40, H + 40], [-40, H + 40]], '#DECAA8', {
-        alpha: 0.94, seed: 15, rim: true,
-      });
-    });
-
-    g.group('ink', () => {
-      // Deck plank perspective lines converging cleanly from foreground (`z = 1.35`) to horizon (`z = -2.8`)!
-      for (let x = -3.0; x <= 3.0; x += 0.6) {
-        g.pen([P([x, 0, -2.8]), P([x, 0, 1.35])], { w: 1.8, color: '#6E5539', seed: 30 + Math.round(x * 10), opacity: 0.55 });
-      }
-      g.pen([[-20, P([0, 0, -2.8])[1]], [W + 20, P([0, 0, -2.8])[1]]], { w: 3.4, color: '#15122A', seed: 45 });
-
-      // Live torpedo wake racing across the 3D sea plane!
-      const tx = -4.8 + 9.6 * Math.min(1, u * 1.15);
-      g.pen([P([tx - 2.6, 0.05, -7.5]), P([tx, 0.05, -7.5])], { w: 7.5, color: '#FFFFFF', seed: 55 });
-      g.pen(oval(P([tx + 0.25, 0.08, -7.5])[0], P([tx + 0.25, 0.08, -7.5])[1], 32, 9, 3), { w: 3.0, color: '#15122A', seed: 56 });
-
-      // Periscope optical crosshair in upper sky
-      const ret = oval(W * 0.5, 360, 250, 250, 7);
-      g.pen([...ret, ret[0]], { w: 3.8, color: '#1A2B42', seed: 60, opacity: 0.42 });
-      g.pen([[W * 0.5 - 275, 360], [W * 0.5 + 275, 360]], { w: 1.8, color: '#1A2B42', seed: 61, opacity: 0.38 });
-      g.pen([[W * 0.5, 85], [W * 0.5, 635]], { w: 1.8, color: '#1A2B42', seed: 62, opacity: 0.38 });
-    });
-
-    // 7.5-heads Captain pointing straight at the lens (`pointAtCamera` foreshortened 5-finger hand!)
     const basePose = pointAtCamera([0.08 + Math.sin(t * 3.0) * 0.06, 1.36 + Math.cos(t * 2.5) * 0.04, 1.35]);
     const pose = {
       ...basePose,
@@ -338,7 +505,6 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     renderMarker(g, scene, CAPTAIN_PALETTE, { weight: 1.15 });
     draw3DNavalCap(ctx, cam, headMatrix, 'captain');
   } else if (shotIdx === 1) {
-    // SHOT 1: Two 7.5-heads volumetric adults in 3D space — Sailor behind 3D iron brig bars + MP Officer in contrapposto!
     const eye: [number, number, number] = [0.05 * u, 1.28, 3.25 - 0.22 * u];
     const target: [number, number, number] = [0.0, 0.98, 0.0];
     const cam = camera(eye, target, lensPx(40, W), W * 0.5, H * 0.53);
@@ -347,22 +513,6 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
       return [q.x, q.y];
     };
 
-    const floorY = P([0, 0, -2.0])[1];
-    g.group('paint', () => {
-      g.wash([[-40, -40], [W + 40, -40], [W + 40, floorY + 20], [-40, floorY + 20]], '#5C6D84', {
-        alpha: 0.86, seed: 101, rim: false,
-      });
-      g.wash(oval(W * 0.5, 360, 120, 120, 8), '#8AB6DB', { alpha: 0.90, seed: 103, rim: true });
-      g.wash([[-40, floorY], [W + 40, floorY], [W + 40, H + 40], [-40, H + 40]], '#9CA5B4', {
-        alpha: 0.94, seed: 104, rim: true,
-      });
-    });
-    g.group('ink', () => {
-      g.pen([...oval(W * 0.5, 360, 120, 120, 8), oval(W * 0.5, 360, 120, 120, 8)[0]], { w: 4.5, color: '#15122A', seed: 105 });
-      g.pen([[-20, floorY], [W + 20, floorY]], { w: 3.8, color: '#15122A', seed: 106 });
-    });
-
-    // Sailor on Left (`x = -0.46m`) behind cell bars
     const pSailorBase = relaxed(16);
     const pSailor = {
       ...pSailorBase,
@@ -382,7 +532,6 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     renderMarker(g, sailorBuilt.scene, SAILOR_PALETTE, { weight: 1.1 });
     draw3DNavalCap(ctx, cam, sailorBuilt.headMatrix, 'sailor');
 
-    // 3D Iron Brig Bars sliding shut at `z = +0.25m` directly in front of the Sailor!
     const slam = Math.min(1, localT / 0.5);
     const dropY = (1 - slam * slam * (3 - 2 * slam)) * 1.6;
     ctx.save();
@@ -403,7 +552,6 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     ctx.strokeRect(topL[0], topR[1], topR[0] - topL[0], 24);
     ctx.restore();
 
-    // MP Officer on Right (`x = +0.44m`) in classical Polykleitos contrapposto (`contra(-22)`) narrating!
     const pMPBase = contra(-24);
     const pMP = {
       ...pMPBase,
@@ -421,47 +569,40 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     renderMarker(g, mpBuilt.scene, MP_PALETTE, { weight: 1.15 });
     draw3DNavalCap(ctx, cam, mpBuilt.headMatrix, 'mp');
   } else if (shotIdx === 2) {
-    // SHOT 2: North Atlantic Night — ZERO-FOOT-SLIP 3D WALK CYCLE (`planWalk` + `walkAt`) across the flagship deck!!
-    const walkFrame = Math.floor(localT * FPS);
+    const cycIdx = Math.floor((localT * FPS) / 30);
+    const walkFrame = 10 + (Math.floor(localT * FPS) % 30);
     const eye: [number, number, number] = [0.42 - 0.16 * u, 1.34, 3.05 - 0.35 * u];
     const target: [number, number, number] = [0.0, 1.02, -0.25];
     const cam = camera(eye, target, lensPx(42, W), W * 0.5, H * 0.53);
-    const P = (v: [number, number, number]): [number, number] => {
-      const q = project(cam, v);
-      return [q.x, q.y];
-    };
-    const hzY = P([0, 0, -12])[1];
+    const hzY = project(cam, [0, 0, -12]).y;
 
-    const deckY2 = P([0, 0, -3.2])[1];
-    g.group('paint', () => {
-      // Sweeping golden & ice-blue convoy searchlights in night sky
-      const sw = Math.sin(t * 1.5) * 140;
-      g.wash([[240, hzY], [60 + sw, -20], [340 + sw, -20]], '#FDE69E', { alpha: 0.34, seed: 201, rim: false });
-      g.wash([[820, hzY], [620 - sw, -20], [900 - sw, -20]], '#BFE0FF', { alpha: 0.30, seed: 202, rim: false });
+    // Animated sweeping convoy searchlights in night sky!
+    const sw = Math.sin(t * 1.5) * 145;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = 'rgba(253, 230, 158, 0.24)';
+    ctx.beginPath();
+    ctx.moveTo(240, hzY);
+    ctx.lineTo(60 + sw, -20);
+    ctx.lineTo(340 + sw, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(191, 224, 255, 0.22)';
+    ctx.beginPath();
+    ctx.moveTo(820, hzY);
+    ctx.lineTo(620 - sw, -20);
+    ctx.lineTo(900 - sw, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 
-      // Night Atlantic sea + escort ship silhouette
-      g.wash([[-40, hzY], [W + 40, hzY], [W + 40, deckY2 + 20], [-40, deckY2 + 20]], '#1C3F6E', {
-        alpha: 0.85, seed: 203, rim: false,
-      });
-      const ship = [P([-5.5, 0, -10]), P([5.5, 0, -10]), P([4.7, 1.3, -10]), P([-4.7, 1.3, -10])];
-      g.wash(ship, '#2B3E58', { alpha: 0.92, seed: 204, rim: true });
-
-      // Moonlit ship bridge deck safely in front of lens (`z <= 1.35m`)
-      g.wash([[-40, deckY2], [W + 40, deckY2], [W + 40, H + 40], [-40, H + 40]], '#8FA2B8', {
-        alpha: 0.92, seed: 205, rim: true,
-      });
-    });
-
-    g.group('ink', () => {
-      for (let x = -3.0; x <= 3.0; x += 0.6) {
-        g.pen([P([x, 0, -3.2]), P([x, 0, 1.35])], { w: 1.8, color: '#243449', seed: 220 + Math.round(x * 10), opacity: 0.55 });
-      }
-      g.pen([[-20, deckY2], [W + 20, deckY2]], { w: 3.4, color: '#0E1525', seed: 240 });
-    });
-
-    // Genuine 3D footstep-solved human walk (`walkAt`) with head turned toward camera & Rhubarb lip-sync!
     const baseWalk = relaxed(WALK_YAW);
-    const w = walkAt(THEO_DIMS, WALK_PLAN, walkFrame, baseWalk, { origin: WALK_ORIGIN, dir: WALK_DIR });
+    const stepOrigin: [number, number, number] = [
+      WALK_ORIGIN[0] + cycIdx * 0.32 * WALK_DIR[0],
+      WALK_ORIGIN[1],
+      WALK_ORIGIN[2] + cycIdx * 0.32 * WALK_DIR[2],
+    ];
+    const w = walkAt(THEO_DIMS, WALK_PLAN, walkFrame, baseWalk, { origin: stepOrigin, dir: WALK_DIR });
     const pWalk = {
       ...w.pose,
       joints: {
@@ -477,38 +618,10 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     renderMarker(g, captainBuilt.scene, CAPTAIN_PALETTE, { weight: 1.15 });
     draw3DNavalCap(ctx, cam, captainBuilt.headMatrix, 'captain');
   } else {
-    // SHOT 3: Harbor Anchor Scrape — Hogarth `reachUp` dynamic overhead panic pose + giant 3D swinging iron anchor!
     const eye: [number, number, number] = [-0.08 + 0.14 * u, 1.34, 2.95 - 0.25 * u];
     const target: [number, number, number] = [0.0, 1.12, 0.0];
     const cam = camera(eye, target, lensPx(40, W), W * 0.5, H * 0.55);
-    const P = (v: [number, number, number]): [number, number] => {
-      const q = project(cam, v);
-      return [q.x, q.y];
-    };
 
-    const deckY3 = P([0, 0, -2.5])[1];
-    g.group('paint', () => {
-      g.wash([[-40, -40], [W + 40, -40], [W + 40, 660], [-40, 660]], '#5EA5EC', {
-        alpha: 0.80, seed: 301, rim: false,
-      });
-      // Tower wall of sister ship hull + glowing orange anchor scrape scar!
-      g.wash([[-40, 560], [W + 40, 650], [W + 40, deckY3 + 20], [-40, deckY3 + 20]], '#8C9EB2', {
-        alpha: 0.92, seed: 302, rim: true,
-      });
-      g.wash([[140, 780], [930, 860], [900, 910], [175, 825]], '#2B2422', {
-        alpha: 0.92, seed: 303, rim: true,
-      });
-      g.wash([[-40, deckY3], [W + 40, deckY3], [W + 40, H + 40], [-40, H + 40]], '#E0CEAE', {
-        alpha: 0.94, seed: 304, rim: true,
-      });
-    });
-    g.group('ink', () => {
-      g.pen([[-20, 560], [W + 20, 650]], { w: 4.5, color: '#15122A', seed: 305 });
-      g.pen([[140, 780], [930, 860], [900, 910], [175, 825], [140, 780]], { w: 4.2, color: '#E86C1A', seed: 306 });
-      g.pen([[-20, deckY3], [W + 20, deckY3]], { w: 3.8, color: '#15122A', seed: 307 });
-    });
-
-    // Swinging giant Admiralty iron anchor + flying sparks over sister hull!
     const ang = Math.sin(t * 3.8) * 0.22;
     ctx.save();
     ctx.translate(540, 125);
@@ -551,7 +664,6 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     }
     ctx.restore();
 
-    // Dynamic Hogarth overhead `reachUp` pose with BOTH arms raised in alarm!
     const pReach = reachUp(-10);
     const pose = {
       ...pReach,
@@ -571,38 +683,45 @@ function drawFrameAnidoodle(ctx: any, env: any, frame: number) {
     renderMarker(g, captainBuilt.scene, CAPTAIN_PALETTE, { weight: 1.15 });
     draw3DNavalCap(ctx, cam, captainBuilt.headMatrix, 'captain');
   }
-
-  // Signature anidoodle cold-press watercolor paper grain & warm vignette
-  g.paper('paper', 0.11);
-  g.vignette('rgba(45, 30, 25, 0.10)');
-  g.paper('coldpress', 0.14);
 }
 
 async function main() {
   const smokeDir = process.env.SMOKE_DIR;
+  const workerChunk = process.env.WORKER_CHUNK;
   const outMp4 =
     process.env.OUT_MP4 || '/tmp/bench_out/05_Anidoodle_VolumetricCel_20s.mp4';
   const audioPath =
     process.env.AUDIO_WAV || path.resolve(__dirname, '../shared/audio_20s.wav');
 
-  const rootCanvas = createCanvas(W, H);
-  const ctx = rootCanvas.getContext('2d');
-  const makeEnv = () => ({
-    W,
-    H,
-    scale: 1,
-    cache: new Map<string, unknown>(),
-    canvas: (w: number, h: number) => {
-      const c = createCanvas(Math.max(1, Math.ceil(w)), Math.max(1, Math.ceil(h)));
-      return { canvas: c as any, ctx: c.getContext('2d') as any };
-    },
-  });
-  const shotEnvs = [makeEnv(), makeEnv(), makeEnv(), makeEnv()];
+  if (workerChunk) {
+    const [c0, c1] = workerChunk.split(',').map(Number);
+    const rootCanvas = createCanvas(W, H);
+    const ctx = rootCanvas.getContext('2d');
+    const sharedEnv = makeCanvasEnv();
+    for (let f = c0; f < c1; f++) {
+      drawFrameAnidoodle(ctx, sharedEnv, f);
+      const rgba = rootCanvas.data();
+      stampCaptionRGBA(rgba, f / FPS);
+      await new Promise<void>((resolve, reject) => {
+        const ok = process.stdout.write(rgba, (err) =>
+          err ? reject(err) : undefined
+        );
+        if (ok) resolve();
+        else process.stdout.once('drain', () => resolve());
+      });
+      if (f % 8 === 0) runGC();
+    }
+    await new Promise<void>((resolve) => process.stdout.end(() => resolve()));
+    return;
+  }
 
   if (smokeDir) {
+    const rootCanvas = createCanvas(W, H);
+    const ctx = rootCanvas.getContext('2d');
+    const sharedEnv = makeCanvasEnv();
     fs.mkdirSync(smokeDir, { recursive: true });
     for (const f of [60, 225, 375, 525]) {
-      drawFrameAnidoodle(ctx, shotEnvs[shotAt(f / FPS).index], f);
+      drawFrameAnidoodle(ctx, sharedEnv, f);
       const rgba = rootCanvas.data();
       stampCaptionRGBA(rgba, f / FPS);
       ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), W, H), 0, 0);
@@ -654,13 +773,25 @@ async function main() {
     { stdio: ['pipe', 'inherit', 'inherit'] }
   );
 
-  for (let f = 0; f < TOTAL_FRAMES; f++) {
-    drawFrameAnidoodle(ctx, shotEnvs[shotAt(f / FPS).index], f);
-    const rgba = rootCanvas.data();
-    stampCaptionRGBA(rgba, f / FPS);
-    if (!ff.stdin.write(rgba)) {
-      await new Promise((r) => ff.stdin.once('drain', r));
-    }
+  const CHUNK_SIZE = 120;
+  const selfScript = fileURLToPath(import.meta.url);
+  for (let c0 = 0; c0 < TOTAL_FRAMES; c0 += CHUNK_SIZE) {
+    const c1 = Math.min(TOTAL_FRAMES, c0 + CHUNK_SIZE);
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(
+        process.execPath,
+        [...process.execArgv, selfScript],
+        {
+          env: { ...process.env, WORKER_CHUNK: `${c0},${c1}` },
+          stdio: ['ignore', 'pipe', 'inherit'],
+        }
+      );
+      child.stdout.pipe(ff.stdin, { end: false });
+      child.on('exit', (code, sig) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Anidoodle chunk [${c0},${c1}) failed code=${code} sig=${sig}`));
+      });
+    });
   }
   ff.stdin.end();
   await new Promise<void>((resolve, reject) => {
