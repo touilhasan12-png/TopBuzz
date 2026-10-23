@@ -2,13 +2,13 @@ name: Render TopBuzz 2D Master Episode
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 
 jobs:
   render-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout TopBuzz Engine
         uses: actions/checkout@v4
@@ -19,13 +19,19 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install System FFmpeg, Fonts & Python Optical-Flow Dependencies
+      - name: Setup Python 3.11 for Optical-Flow & Loudness Telemetry
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Fonts & Python Optical-Flow Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-montserrat fonts-dejavu-core
-          fc-cache -fv
-          python3 -m pip install --upgrade pip
-          python3 -m pip install opencv-python-headless numpy scipy matplotlib
+          sudo apt-get update -yq
+          sudo apt-get install -yq --no-install-recommends ffmpeg fonts-montserrat fonts-dejavu-core
+          fc-cache -f
+          python -m pip install --upgrade pip
+          python -m pip install opencv-python-headless numpy scipy matplotlib librosa soundfile
           npm ci
 
       - name: Render 15-Frame Full-HD Storyboard Contact Sheet
@@ -44,7 +50,7 @@ jobs:
 
       - name: Execute Automated Broadcast & Reference Style Fingerprint Audit
         run: |
-          python3 tools/verify_master.py out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
+          python tools/verify_master.py out/TopBuzz_EP01_Willie_Dee_1080p_Master.mp4
 
       - name: Upload Verified 1080p Master Video & Telemetry Artifacts
         uses: actions/upload-artifact@v4
