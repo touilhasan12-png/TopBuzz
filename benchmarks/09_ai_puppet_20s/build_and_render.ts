@@ -377,10 +377,21 @@ async function runWorkerRange(startFrame: number, endFrame: number) {
     const file = path.join(avaDir, name, `${name}.r2d.json`);
     const loaded = await loadModelFile(file);
     if (!loaded.model) throw new Error(`Failed loading Rev2D avatar ${name}`);
-    const rig = new Rig(loaded.model);
+    const rawRig = new Rig(loaded.model);
+    const validParams = new Set<string>(loaded.model.parameters.map((p: any) => p.id));
+    const origPose = rawRig.pose.bind(rawRig);
+    rawRig.pose = (opts: any) => {
+      const clean: Record<string, number> = {};
+      if (opts?.params) {
+        for (const [k, v] of Object.entries(opts.params)) {
+          if (validParams.has(k)) clean[k] = v as number;
+        }
+      }
+      return origPose({ ...opts, params: clean });
+    };
     const offCanvas = createCanvas(64, 64);
     const offCtx = offCanvas.getContext("2d");
-    return { loaded, rig, offCanvas, offCtx };
+    return { loaded, rig: rawRig, offCanvas, offCtx };
   }
 
   const [avaCaptain, avaSailor, avaMP, avaFDR] = await Promise.all([
