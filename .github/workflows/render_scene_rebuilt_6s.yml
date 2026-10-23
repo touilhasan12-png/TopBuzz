@@ -1,0 +1,33 @@
+name: Rebuilt illustrated scene 6s
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render_rev2d_ai_avatar_20s:
+    name: Articulated performance with reserved caption area
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Dependencies & Clone RevStudio/Rev2D
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p /tmp/gh_engines /tmp/out_video
+          ln -sfn "$GITHUB_WORKSPACE/node_modules" /tmp/gh_engines/node_modules
+          git clone --depth 1 https://github.com/RevStudio/Rev2D.git /tmp/gh_engines/rev2d
+      - name: Render 180 frames on GitHub only
+        env:
+          REV2D_ROOT: /tmp/gh_engines/rev2d
+          OUT_MP4: /tmp/out_video/12_Scene_Rebuilt_6s.mp4
+        run: |
+          node --import=tsx benchmarks/12_scene_rebuild/render.ts
+          ls -lh /tmp/out_video/12_Scene_Rebuilt_6s.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-12-Scene-Rebuilt-6s
+          path: /tmp/out_video/12_Scene_Rebuilt_6s.mp4
+          retention-days: 30
