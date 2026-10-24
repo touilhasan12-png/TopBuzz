@@ -1,0 +1,28 @@
+name: 'Deliver existing Blender 16 partial — NO RENDER'
+on:
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download already completed frames — no Blender execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 40085266728 --repo "$GITHUB_REPOSITORY" --name Blender16-frames-A --dir /tmp/frames16
+      - name: Encode only existing 85 frames
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python3 tools/blender16/captions.py
+          mkdir -p /tmp/deliver
+          ffmpeg -y -loglevel warning -framerate 30 -start_number 1 -i /tmp/frames16/f%04d.png -i assets/sample14/mix.wav -vf "ass=/tmp/captions16.ass:fontsdir=assets/fonts,scale=out_range=tv" -map 0:v:0 -map 1:a:0 -frames:v 85 -t 2.833333 -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p -color_range tv -c:a aac -b:a 192k -movflags +faststart /tmp/deliver/16_Blender_PARTIAL_2.83s.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-16-PARTIAL-2.83s
+          path: /tmp/deliver/16_Blender_PARTIAL_2.83s.mp4
+          retention-days: 30
