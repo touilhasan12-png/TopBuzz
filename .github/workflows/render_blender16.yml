@@ -1,0 +1,61 @@
+name: '16 Blender — illustrated cannon acting and unified world'
+on:
+  workflow_dispatch:
+jobs:
+  render:
+    name: 'Blender CPU · frames ${{ matrix.part }}'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: A
+            start: 1
+            end: 85
+          - part: B
+            start: 86
+            end: 170
+          - part: C
+            start: 171
+            end: 255
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y blender
+      - name: Build and render authored scene on GitHub only
+        env:
+          OMP_NUM_THREADS: '4'
+        run: blender -b -t 4 --python tools/blender16/scene.py -- --start ${{ matrix.start }} --end ${{ matrix.end }} --output /tmp/frames16
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Blender16-frames-${{ matrix.part }}
+          path: /tmp/frames16/*.png
+          compression-level: 0
+          retention-days: 2
+  encode:
+    name: 'Encode final 8.5s sample'
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Blender16-frames-*
+          path: /tmp/frames16
+          merge-multiple: true
+      - name: Install encoder
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Add English voice, effects and short captions
+        run: |
+          python3 tools/blender16/captions.py
+          mkdir -p /tmp/deliver16
+          ffmpeg -y -loglevel warning -framerate 30 -start_number 1 -i /tmp/frames16/f%04d.png -i assets/sample14/mix.wav -vf "ass=/tmp/captions16.ass:fontsdir=assets/fonts,scale=out_range=tv" -map 0:v:0 -map 1:a:0 -c:v libx264 -preset medium -crf 17 -pix_fmt yuv420p -color_range tv -c:a aac -b:a 192k -t 8.5 -movflags +faststart /tmp/deliver16/16_Blender_Cannon_8.5s.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-16-Blender-Cannon-8.5s
+          path: /tmp/deliver16/16_Blender_Cannon_8.5s.mp4
+          retention-days: 30
