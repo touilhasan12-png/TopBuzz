@@ -21,14 +21,17 @@ jobs:
             end: 255
     steps:
       - uses: actions/checkout@v4
-      - name: Install Blender
+      - name: Install official Blender 4.2.5 with CPU OpenImageDenoise
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y blender
+          sudo apt-get install -y libxi6 libxrender1 libxkbcommon0 libsm6 libgl1 libgomp1
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender4.2/blender-4.2.5-linux-x64.tar.xz -o /tmp/blender.tar.xz
+          sudo tar -xJf /tmp/blender.tar.xz -C /opt
+          echo "/opt/blender-4.2.5-linux-x64" >> "$GITHUB_PATH"
       - name: Build and render authored scene on GitHub only
         env:
           OMP_NUM_THREADS: '4'
-        run: blender -b -t 4 --python tools/blender16/scene.py -- --start ${{ matrix.start }} --end ${{ matrix.end }} --output /tmp/frames16
+        run: blender -b -t 4 --python-exit-code 1 --python tools/blender16/scene.py -- --start ${{ matrix.start }} --end ${{ matrix.end }} --output /tmp/frames16
       - uses: actions/upload-artifact@v4
         with:
           name: Blender16-frames-${{ matrix.part }}
