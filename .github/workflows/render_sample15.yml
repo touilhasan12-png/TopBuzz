@@ -1,0 +1,28 @@
+name: '15 Revised new reference — illustrated 3D cannon sample'
+on:
+  workflow_dispatch:
+jobs:
+  render:
+    name: 'New reference cannon · 8.5s · 1080×1920'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install render dependencies
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p "$HOME/.local/bin" /tmp/out_video
+          ln -sf "$(node -e "import('ffmpeg-static').then(m=>process.stdout.write(m.default))")" "$HOME/.local/bin/ffmpeg"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Render directly on GitHub — no local render, no QA stage
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node tools/render_sample15.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-15-NewReference-Revised-8.5s
+          path: /tmp/out_video/15_NewReference_Revised_8.5s.mp4
+          retention-days: 30
