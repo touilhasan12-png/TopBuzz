@@ -1,0 +1,28 @@
+name: Hybrid 08 revised illustration and staging 20s
+on:
+  workflow_dispatch:
+jobs:
+  render:
+    name: Hybrid 08 revised 20s
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p "$HOME/.local/bin" /tmp/out_video
+          ln -sf "$(node -e "import('ffmpeg-static').then(m=>process.stdout.write(m.default))")" "$HOME/.local/bin/ffmpeg"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Render 600 frames on GitHub only
+        run: |
+          node render.mjs --page=studio13.html --clip --range=0:20 --fps=30 --audio=benchmarks/shared/audio_20s.wav --out=/tmp/out_video/13_Hybrid08_Revised_20s.mp4
+          test -s /tmp/out_video/13_Hybrid08_Revised_20s.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopBuzz-13-Hybrid08-Revised-20s
+          path: /tmp/out_video/13_Hybrid08_Revised_20s.mp4
+          retention-days: 30
