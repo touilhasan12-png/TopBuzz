@@ -1,0 +1,12 @@
+import http from 'node:http';
+import {readFileSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
+import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import puppeteer from 'puppeteer-core';
+const root=process.cwd(),out=process.env.OUTPUT||'/tmp/out_video/14_NewReference_Cannon_8.5s.mp4';mkdirSync(path.dirname(out),{recursive:true});
+const types={'.html':'text/html','.js':'application/javascript','.png':'image/png','.json':'application/json','.wav':'audio/wav','.otf':'font/otf'};
+const server=http.createServer((req,res)=>{let u=decodeURIComponent(new URL(req.url,'http://localhost').pathname),p=path.join(root,u);if(!p.startsWith(root)||!existsSync(p)){res.writeHead(404);return res.end('Not found')}res.setHeader('Content-Type',types[path.extname(p)]||'application/octet-stream');res.end(readFileSync(p))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+let browser,ff;try{const chrome=process.env.CHROME_PATH||['/usr/bin/google-chrome','/usr/bin/chromium'].find(existsSync);if(!chrome)throw Error('Chrome missing');browser=await puppeteer.launch({executablePath:chrome,headless:true,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage','--disable-background-timer-throttling']});const page=await browser.newPage();page.on('pageerror',e=>console.error('PAGE_ERROR',e.message));await page.setViewport({width:1080,height:1920,deviceScaleFactor:1});await page.goto(`http://127.0.0.1:${server.address().port}/sample14.html?render`,{waitUntil:'networkidle0',timeout:120000});await page.waitForFunction('window.ready===true',{timeout:120000});
+ff=spawn('ffmpeg',['-y','-loglevel','warning','-f','image2pipe','-vcodec','mjpeg','-framerate','30','-i','pipe:0','-i','assets/sample14/mix.wav','-map','0:v:0','-map','1:a:0','-c:v','libx264','-preset','medium','-crf','17','-vf','scale=in_range=full:out_range=tv','-pix_fmt','yuv420p','-color_range','tv','-c:a','aac','-b:a','192k','-t','8.5','-movflags','+faststart',out],{stdio:['pipe','inherit','inherit']});let done=once(ff,'close');for(let n=0;n<255;n++){let data=await page.evaluate(t=>window.renderAt(t,'image/jpeg',.96),n/30);let buf=Buffer.from(data.split(',')[1],'base64');if(!ff.stdin.write(buf))await once(ff.stdin,'drain');if(n%30===0)console.log(`Frame ${n}/255`)}ff.stdin.end();let [code]=await done;if(code!==0)throw Error(`ffmpeg exited ${code}`);console.log('Delivered render:',out);
+}finally{if(browser)await browser.close();server.close();}
